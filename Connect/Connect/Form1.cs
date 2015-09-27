@@ -15,6 +15,7 @@ namespace Connect
         public Form1()
         {
             InitializeComponent();
+						//Терьям-терьям
             Core core = new Core();
         }
     }
