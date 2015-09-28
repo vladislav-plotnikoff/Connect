@@ -12,11 +12,12 @@ namespace Connect
 {
     public partial class Form1 : Form
     {
+        private Core core = new Core();
         public Form1()
         {
             InitializeComponent();
-						//Терьям-терьям
-            Core core = new Core();
+            core.NewGame();
+            bool b = core[0, 0].pc;
         }
     }
 }

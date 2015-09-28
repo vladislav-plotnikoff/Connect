@@ -1,1 +1,8 @@
 C:\Users\User\Documents\GitHub\Connect\Connect\Connect\bin\Debug\Connect.exe.config
+C:\Users\User\Documents\GitHub\Connect\Connect\Connect\bin\Debug\Connect.exe
+C:\Users\User\Documents\GitHub\Connect\Connect\Connect\bin\Debug\Connect.pdb
+C:\Users\User\Documents\GitHub\Connect\Connect\Connect\obj\Debug\Connect.csprojResolveAssemblyReference.cache
+C:\Users\User\Documents\GitHub\Connect\Connect\Connect\obj\Debug\Connect.Properties.Resources.resources
+C:\Users\User\Documents\GitHub\Connect\Connect\Connect\obj\Debug\Connect.csproj.GenerateResource.Cache
+C:\Users\User\Documents\GitHub\Connect\Connect\Connect\obj\Debug\Connect.exe
+C:\Users\User\Documents\GitHub\Connect\Connect\Connect\obj\Debug\Connect.pdb
