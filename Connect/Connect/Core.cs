@@ -109,7 +109,12 @@ namespace Connect
             /// Предоставляет доступ к свойству наличия сети
             /// </summary>
             public new bool net { get { return base.net; } set { base.net = value; } }
-            
+
+            /// <summary>
+            /// Предоставляет доступ к свойству блокировки элемента
+            /// </summary>
+            public new bool block { get { return base.block; } set { base.block = value; } }
+
             /// <summary>
             /// Восстановление верного решения
             /// </summary>
@@ -196,6 +201,22 @@ namespace Connect
         public enum TypeTurn { left, right, block }
 
         /// <summary>
+        /// Класс хода
+        /// </summary>
+        private class Turn
+        {
+            public int x { get; private set; }
+            public int y { get; private set; }
+            public TypeTurn typeTurn { get; private set; }
+            public Turn(int x, int y, TypeTurn typeTurn)
+            {
+                this.x = x;
+                this.y = y;
+                this.typeTurn = typeTurn;
+            }
+        }
+
+        /// <summary>
         /// Основное поле игры
         /// </summary>
         private Element[,] elements;
@@ -204,6 +225,21 @@ namespace Connect
         /// Сложность игры
         /// </summary>
         public Mode mode { get; private set; }
+
+        /// <summary>
+        /// История ходов
+        /// </summary>
+        private List<Turn> history;
+
+        /// <summary>
+        /// Количество ходов выделенных для решения
+        /// </summary>
+        public int step { get; private set; }
+
+        /// <summary>
+        /// Количество ходов изначально выделенных для решения
+        /// </summary>
+        private int rStep;
 
         /// <summary>
         /// Количество неподключенных ПК
@@ -219,6 +255,14 @@ namespace Connect
         public BaseElement this[int x, int y]
         {
             get { return elements[x, y]; }
+        }
+
+        /// <summary>
+        /// Конструктор ядра
+        /// </summary>
+        public Core()
+        {
+            history = new List<Turn>();
         }
 
         /// <summary>
@@ -249,6 +293,14 @@ namespace Connect
         }
 
         /// <summary>
+        /// Проверка наличия сети
+        /// </summary>
+        private void CheckConnected()
+        {
+
+        }
+
+        /// <summary>
         /// Новый ход
         /// </summary>
         /// <param name="x"></param>
@@ -257,6 +309,29 @@ namespace Connect
         /// <returns>Возращает true усли ход победный</returns>
         public bool NewTurn(int x, int y, TypeTurn typeTurn)
         {
+            history.Add(new Turn(x, y, typeTurn));
+            switch (typeTurn)
+            {
+                case TypeTurn.block:
+                    elements[x, y].LockUnlock();
+                    break;
+                case TypeTurn.left:
+                    if (elements[x, y].block)
+                    {
+                        elements[x, y].RotationLeft();
+                        step--;
+                        CheckConnected();
+                    }
+                    break;
+                case TypeTurn.right:
+                    if (elements[x, y].block)
+                    {
+                        elements[x, y].RotationRight();
+                        step--;
+                        CheckConnected();
+                    }
+                    break;
+            }
             return countDisconnectedPC == 0;
         }
     }
