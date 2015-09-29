@@ -83,6 +83,13 @@ namespace Connect
                 this.down = down;
                 this.left = left;
                 this.right = right;
+
+                //Сохрание начального положения
+                oUp = up;
+                oDown = down;
+                oLeft = left;
+                oRight = right;
+
                 if (server)
                 {
                     this.server = server;
@@ -99,29 +106,14 @@ namespace Connect
             }
 
             /// <summary>
-            /// Задание наличия сети
+            /// Предоставляет доступ к свойству наличия сети
             /// </summary>
-            /// <param name="net"></param>
-            public void SetConnected(bool net)
-            {
-                this.net = net;
-            }
-
+            public new bool net { get { return base.net; } set { base.net = value; } }
+            
             /// <summary>
-            /// Сохранение оригинальной позиции
+            /// Восстановление верного решения
             /// </summary>
-            public void SaveOrigin()
-            {
-                oUp = up;
-                oDown = down;
-                oLeft = left;
-                oRight = right;
-            }
-
-            /// <summary>
-            /// Загрука решенной позиции
-            /// </summary>
-            public void LoadOriginal()
+            public void CallHint()
             {
                 up = oUp;
                 down = oDown;
@@ -234,7 +226,9 @@ namespace Connect
         /// </summary>
         public void NewGame()
         {
-            
+            elements = new Element[1, 1];
+            elements[0, 0] = new Element(true, false, false, false, false);
+            elements[0, 0].net = false;
         }
 
         /// <summary>

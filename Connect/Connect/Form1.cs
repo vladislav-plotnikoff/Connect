@@ -17,7 +17,6 @@ namespace Connect
         {
             InitializeComponent();
             core.NewGame();
-            bool b = core[0, 0].pc;
         }
     }
 }
