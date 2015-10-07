@@ -6,3 +6,12 @@ C:\Users\User\Documents\GitHub\Connect\Connect\Connect\obj\Debug\Connect.Propert
 C:\Users\User\Documents\GitHub\Connect\Connect\Connect\obj\Debug\Connect.csproj.GenerateResource.Cache
 C:\Users\User\Documents\GitHub\Connect\Connect\Connect\obj\Debug\Connect.exe
 C:\Users\User\Documents\GitHub\Connect\Connect\Connect\obj\Debug\Connect.pdb
+C:\Users\Александр\Documents\Visual Studio 2015\Projects\Connect\Connect\Connect\bin\Debug\Connect.exe.config
+C:\Users\Александр\Documents\Visual Studio 2015\Projects\Connect\Connect\Connect\obj\Debug\Connect.exe
+C:\Users\Александр\Documents\Visual Studio 2015\Projects\Connect\Connect\Connect\obj\Debug\Connect.pdb
+C:\Users\Александр\Documents\Visual Studio 2015\Projects\Connect\Connect\Connect\bin\Debug\Connect.exe
+C:\Users\Александр\Documents\Visual Studio 2015\Projects\Connect\Connect\Connect\bin\Debug\Connect.pdb
+C:\Users\Александр\Documents\Visual Studio 2015\Projects\Connect\Connect\Connect\obj\Debug\Connect.csprojResolveAssemblyReference.cache
+C:\Users\Александр\Documents\Visual Studio 2015\Projects\Connect\Connect\Connect\obj\Debug\Connect.Form1.resources
+C:\Users\Александр\Documents\Visual Studio 2015\Projects\Connect\Connect\Connect\obj\Debug\Connect.Properties.Resources.resources
+C:\Users\Александр\Documents\Visual Studio 2015\Projects\Connect\Connect\Connect\obj\Debug\Connect.csproj.GenerateResource.Cache
