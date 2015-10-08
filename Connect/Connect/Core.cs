@@ -577,7 +577,6 @@ namespace Connect
                         this[tempPoint].directions = (this[tempPoint].directions | (Directions)i);
                     }
                 }
-
             }
 
             return tempListPoint;
