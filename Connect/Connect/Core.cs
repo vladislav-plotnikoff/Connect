@@ -160,9 +160,20 @@ namespace Connect
             public new bool right { get { return base.right; } set { base.right = value; } }
 
             /// <summary>
+            /// Сохранение верного решения
+            /// </summary>
+            public void SaveHint()
+            {
+                oUp = up;
+                oDown = down;
+                oLeft = left;
+                oRight = right;
+            }
+
+            /// <summary>
             /// Восстановление верного решения
             /// </summary>
-            public void CallHint()
+            public void LoadHint()
             {
                 up = oUp;
                 down = oDown;
@@ -174,7 +185,7 @@ namespace Connect
             /// <summary>
             /// Сохранение позиции для последующего восстановления
             /// </summary>
-            public void SaveForRepeat()
+            public void SaveRepeat()
             {
                 rUp = up;
                 rDown = down;
@@ -185,7 +196,7 @@ namespace Connect
             /// <summary>
             /// Загрузка сохранённой позиции для повтора игры
             /// </summary>
-            public void LoadForRepeat()
+            public void LoadRepeat()
             {
                 up = rUp;
                 down = rDown;
@@ -266,6 +277,27 @@ namespace Connect
                 x = p.x;
                 y = p.y;
             }
+
+            /// <summary>
+            /// Переопределённый оператор равенства
+            /// </summary>
+            /// <param name="p1"></param>
+            /// <param name="p2"></param>
+            /// <returns></returns>
+            public static bool operator == (Point p1, Point p2)
+            {
+                return p1.x == p2.x && p1.y == p2.y;
+            }
+            /// <summary>
+            /// Переопределённый оператор неравенства
+            /// </summary>
+            /// <param name="p1"></param>
+            /// <param name="p2"></param>
+            /// <returns></returns>
+            public static bool operator != (Point p1, Point p2)
+            {
+                return p1.x != p2.x || p1.y != p2.y;
+            }
         }
 
         /// <summary>
@@ -328,7 +360,7 @@ namespace Connect
         /// <summary>
         /// Количество ходов выделенных для решения
         /// </summary>
-        public int step { get; private set; }
+        public int steps { get; private set; }
 
         /// <summary>
         /// Количество ходов изначально выделенных для решения
@@ -412,6 +444,7 @@ namespace Connect
                 sampleElements[i] = new Element();
                 sampleElements[i].directions = (Directions)i;
             }
+            elements = new Element[9, 9];
         }
 
         /// <summary>
@@ -419,7 +452,8 @@ namespace Connect
         /// </summary>
         public void NewGame()
         {
-            elements = new Element[9, 9];
+            mode = Mode.Expert;
+            CreateField();
         }
 
         /// <summary>
@@ -466,7 +500,7 @@ namespace Connect
                     if (elements[x, y].block)
                     {
                         elements[x, y].RotationLeft();
-                        step--;
+                        steps--;
                         CheckConnected();
                     }
                     break;
@@ -474,7 +508,7 @@ namespace Connect
                     if (elements[x, y].block)
                     {
                         elements[x, y].RotationRight();
-                        step--;
+                        steps--;
                         CheckConnected();
                     }
                     break;
@@ -499,202 +533,177 @@ namespace Connect
         }
 
         /// <summary>
+        /// Возвращает соседнюю точку
+        /// </summary>
+        /// <param name="p"></param>
+        /// <param name="d"></param>
+        /// <returns></returns>
+        private Point BesidePoint(Point p, Directions d)
+        {
+            switch (d)
+            {
+                case Directions.up:
+                    return new Point(p.x, p.y - 1);
+                case Directions.down:
+                    return new Point(p.x, p.y + 1);
+                case Directions.left:
+                    return new Point(p.x - 1, p.y);
+                case Directions.right:
+                    return new Point(p.x + 1, p.y);
+                default:
+                    throw new Exception("Передано несколько направлений");
+            }
+        }
+
+        /// <summary>
+        /// Заполнение соседних пиков
+        /// </summary>
+        /// <param name="p1">Откуда пришёл интернет</param>
+        /// <param name="p2">Обрабатываемы пик</param>
+        /// <returns></returns>
+        private List<Point> SetAround(Point p1, Point p2)
+        {
+            Point tempPoint;
+            List<Point> tempListPoint = new List<Point>();
+            if (this[p2].up)
+            {
+                tempPoint = BesidePoint(p2, Directions.up);
+                if (tempPoint != p1)
+                {
+                    tempListPoint.Add(tempPoint);
+                    this[tempPoint].down = true;
+                }
+            }
+            if (this[p2].down)
+            {
+                tempPoint = BesidePoint(p2, Directions.down);
+                if (tempPoint != p1)
+                {
+                    tempListPoint.Add(tempPoint);
+                    this[tempPoint].up = true;
+                }
+            }
+            if (this[p2].left)
+            {
+                tempPoint = BesidePoint(p2, Directions.left);
+                if (tempPoint != p1)
+                {
+                    tempListPoint.Add(tempPoint);
+                    this[tempPoint].right = true;
+                }
+            }
+            if (this[p2].right)
+            {
+                tempPoint = BesidePoint(p2, Directions.right);
+                if (tempPoint != p1)
+                {
+                    tempListPoint.Add(tempPoint);
+                    this[tempPoint].left = true;
+                }
+            }
+            return tempListPoint;
+        }
+
+        /// <summary>
         /// Генерация лабиринта
         /// </summary>
         private void CreateField()
         {
+            for (int i = 0; i < (int)mode; i++)
+                for (int j = 0; j < (int)mode; j++)
+                {
+                    elements[i, j] = new Element();
+                }
             Random rand = new Random();
             server = new Point(rand.Next((int)mode), rand.Next((int)mode));
             elements[server.x, server.y].server = true;
             if (mode == Mode.Expert)
             {
                 this[server].CopyElement(sampleElements[rand.Next(14) + 1]);
-                List<Point> peaks = new List<Point>();
-                Point tempPoint;
-                if (this[server].up)
-                {
-                    tempPoint = new Point(server);
-                    tempPoint.y--;
-                    peaks.Add(tempPoint);
-                    this[tempPoint].down = true;
-                }
-                if (this[server].down)
-                {
-                    tempPoint = new Point(server);
-                    tempPoint.y++;
-                    peaks.Add(tempPoint);
-                    this[tempPoint].up = true;
-                }
-                if (this[server].left)
-                {
-                    tempPoint = new Point(server);
-                    tempPoint.x--;
-                    peaks.Add(tempPoint);
-                    this[tempPoint].right = true;
-                }
-                if (this[server].right)
-                {
-                    tempPoint = new Point(server);
-                    tempPoint.x++;
-                    peaks.Add(tempPoint);
-                    this[tempPoint].left = true;
-                }
-                Point peak;
+                List<Point> peaks = SetAround(new Point(-1, -1), server);
+                Point peak, netPoint;
                 List<int> availableSamples = new List<int>();
                 while (peaks.Count > 0)
                 {
                     peak = peaks[rand.Next(peaks.Count)];
-                    switch (this[peak].directions)
+                    availableSamples.Clear();
+                    netPoint = BesidePoint(peak, this[peak].directions);
+                    for (int i = 0; i < 15; i++)
                     {
-                        case Directions.up:
-                            for (int i = 0; i < 15; i++)
-                                if (sampleElements[i].up)
-                                    availableSamples.Add(i);
-                            break;
-                        case Directions.down:
-                            for (int i = 0; i < 15; i++)
-                                if (sampleElements[i].down)
-                                    availableSamples.Add(i);
-                            break;
-                        case Directions.left:
-                            for (int i = 0; i < 15; i++)
-                                if (sampleElements[i].left)
-                                    availableSamples.Add(i);
-                            break;
-                        case Directions.right:
-                            for (int i = 0; i < 15; i++)
-                                if (sampleElements[i].right)
-                                    availableSamples.Add(i);
-                            break;
+                        if (sampleElements[i].directions.HasFlag(this[peak].directions))
+                        {
+                            availableSamples.Add(i);
+                        }
                     }
-                    if (this[peak.x, peak.y - 1].connects > 0)
+                    availableSamples.Remove((int)this[peak].directions);
+
+                    /*
+                        Данный цикл перебирает стороны по маске и отсекает невозможные пути
+                        развития лабиринта, с учётом ячейки из которой он пришёл.
+                    */
+                    for (int i = 1; i < 16; i *= 2)
                     {
-                        
+                        if (this[BesidePoint(peak, (Directions)i)].connects > 0
+                            && !this[peak].directions.HasFlag((Directions)i))
+                        {
+                            for (int j = 0; j < 15; j++)
+                                if (sampleElements[j].directions.HasFlag((Directions)i))
+                                    availableSamples.Remove(j);
+                        }
                     }
+
+                    if (availableSamples.Count != 0)
+                    {
+                        this[peak].CopyElement(sampleElements[availableSamples[rand.Next(availableSamples.Count)]]);
+                        peaks.AddRange(SetAround(netPoint, peak));
+                    }
+                    peaks.Remove(peak);
                 }
             }
             else
             {
-                for (int i = 0; i < (int)mode; i++)
-                    for (int j = 0; j < (int)mode; j++)
-                    {
-                        if (i != 0)
-                            elements[i, j].left = true;
-                        if (i != (int)mode - 1)
-                            elements[i, j].right = true;
-                        if (j != 0)
-                            elements[i, j].up = true;
-                        if (j != (int)mode - 1)
-                            elements[i, j].down = true;
-                    }
-                int[,] multiplicity = new int[(int)mode, (int)mode];
-                for (int i = 0; i < (int)mode; i++)
-                    multiplicity[i, 0] = i;
-                for (int j = 0; j < (int)mode - 1; j++)
-                {
-                    for (int i = 0; i < (int)mode - 1; i++)
-                    {
-                        if (multiplicity[i, j] == multiplicity[i + 1, j])
-                        {
-                            elements[i + 1, j].left = false;
-                            elements[i, j].right = false;
-                        }
-                        else
-                        {
-
-                            if (rand.Next(2) == 0)
-                            {
-                                int a = multiplicity[i, j];
-                                int b = multiplicity[i + 1, j];
-                                for (int k = 0; k < (int)mode; k++)
-                                    if (multiplicity[k, j] == b)
-                                        multiplicity[k, j] = a;
-                            }
-                            else
-                            {
-                                elements[i + 1, j].left = false;
-                                elements[i, j].right = false;
-                            }
-                        }
-                    }
-                    bool checkout = true;
-                    int mul;
-                    bool checkmul = false;
-                    while (checkout)
-                    {
-                        for (int i = 0; i < (int)mode; i++)
-                        {
-                            if (rand.Next(2) == 0 ||
-                                elements[i, j].up && elements[i, j].left && elements[i, j].right)
-                            {
-                                elements[i, j].down = false;
-                                elements[i, j + 1].up = false;
-                            }
-                            else
-                            {
-                                elements[i, j].down = true;
-                                elements[i, j + 1].up = true;
-                            }
-                        }
-                        mul = multiplicity[0, j];
-                        checkmul = false;
-                        checkout = false;
-                        for (int i = 0; i < (int)mode; i++)
-                        {
-                            if (mul == multiplicity[i, j])
-                            {
-                                if (elements[i, j].down)
-                                    checkmul = true;
-                            }
-                            else
-                            {
-                                if (checkmul)
-                                {
-                                    mul = multiplicity[i, j];
-                                    checkmul = false;
-                                    if (elements[i, j].down)
-                                        checkmul = true;
-                                }
-                                else
-                                {
-                                    checkout = true;
-                                    break;
-                                }
-                            }
-                            if (i == (int)mode - 1 && !checkmul)
-                                checkout = true;
-                        }
-                    }
-
-                    for (int i = 0; i < (int)mode; i++)
-                    {
-                        multiplicity[i, j + 1] = multiplicity[i, j];
-                        if (!elements[i, j + 1].up)
-                            multiplicity[i, j + 1] = i + (j + 1) * 10;
-                    }
-                    for (int i = 1; i < (int)mode; i++)
-                    {
-                        if (multiplicity[i, j + 1] == multiplicity[i - 1, j + 1])
-                        {
-                            elements[i, j + 1].left = false;
-                            elements[i - 1, j + 1].right = false;
-                        }
-                    }
-                }
-
-                for (int i = 0; i < (int)mode - 1; i++)
-                {
-                    int d = multiplicity[i, (int)mode - 1];
-                    for (int j = i + 1; j < (int)mode; j++)
-                    {
-                        if (multiplicity[j, (int)mode - 1] == d)
-                        {
-                            elements[j, (int)mode - 1].left = false;
-                            elements[j - 1, (int)mode - 1].right = false;
-                        }
-                    }
-                }
+                
             }
+
+            /*
+                Инициализация ПК, перемешивание поля, запоминание подсказок,
+                сохранение для повтора и расчёт количества ходов.
+            */
+            steps = 0;
+            for (int i = 0; i < (int)mode; i++)
+                for (int j = 0; j < (int)mode; j++)
+                {
+                    if (elements[i, j].connects == 1 && !elements[i, j].server)
+                    {
+                        elements[i, j].pc = true;
+                    }
+                    elements[i, j].SaveHint();
+                    if ((int)elements[i, j].directions == 0)
+                        continue;
+                    switch (rand.Next(4))
+                    {
+                        case 0:
+                            break;
+                        case 1:
+                            elements[i, j].RotationRight();
+                            steps++;
+                            break;
+                        case 2:
+                            if ((int)elements[i, j].directions == 0xA || (int)elements[i, j].directions == 0x5)
+                                break;
+                            elements[i, j].RotationRight();
+                            elements[i, j].RotationRight();
+                            steps += 2;
+                            break;
+                        case 3:
+                            elements[i, j].RotationLeft();
+                            steps++;
+                            break;
+                    }
+                    elements[i, j].SaveRepeat();
+                }
+            rStep = steps;
+
         }
     }
 }
