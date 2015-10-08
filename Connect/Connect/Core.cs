@@ -565,42 +565,32 @@ namespace Connect
         {
             Point tempPoint;
             List<Point> tempListPoint = new List<Point>();
-            if (this[p2].up)
-            {
-                tempPoint = BesidePoint(p2, Directions.up);
-                if (tempPoint != p1)
-                {
-                    tempListPoint.Add(tempPoint);
-                    this[tempPoint].down = true;
-                }
-            }
-            if (this[p2].down)
-            {
-                tempPoint = BesidePoint(p2, Directions.down);
-                if (tempPoint != p1)
-                {
-                    tempListPoint.Add(tempPoint);
-                    this[tempPoint].up = true;
-                }
-            }
-            if (this[p2].left)
-            {
-                tempPoint = BesidePoint(p2, Directions.left);
-                if (tempPoint != p1)
-                {
-                    tempListPoint.Add(tempPoint);
-                    this[tempPoint].right = true;
-                }
-            }
-            if (this[p2].right)
-            {
-                tempPoint = BesidePoint(p2, Directions.right);
-                if (tempPoint != p1)
-                {
-                    tempListPoint.Add(tempPoint);
-                    this[tempPoint].left = true;
-                }
-            }
+
+						for(int i = 1; i < 16; i *= 2) {
+
+							if(this[p2].directions.HasFlag((Directions)i)) {
+								tempPoint = BesidePoint(p2, (Directions)i);
+								if(tempPoint != p1) {
+									tempListPoint.Add(tempPoint);
+									switch(i) {
+										case 1:
+											this[tempPoint].down = true;
+											break;
+										case 2:
+											this[tempPoint].left = true;
+											break;
+										case 4:
+											this[tempPoint].up = true;
+											break;
+										case 8:
+											this[tempPoint].right = true;
+											break;
+									}
+								}
+							}
+					
+						}
+
             return tempListPoint;
         }
 
