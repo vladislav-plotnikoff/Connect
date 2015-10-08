@@ -574,7 +574,8 @@ namespace Connect
                     if (tempPoint != p1)
                     {
                         tempListPoint.Add(tempPoint);
-                        this[tempPoint].directions = (this[tempPoint].directions | (Directions)i);
+                        this[tempPoint].directions = (this[tempPoint].directions 
+                            | (Directions)(((i << 4) | i) >> 2 & 0xf));
                     }
                 }
             }
