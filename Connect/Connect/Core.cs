@@ -9,49 +9,29 @@ namespace Connect
     class Core
     {
         /// <summary>
-        /// Информация о клетке
+        /// Клетка в игре
         /// </summary>
-        public class BaseElement
+        private class Element
         {
             /// <summary>
-            /// Наличие нижнего конектера
+            /// Численная маска
             /// </summary>
-            public bool down { get; protected set; }
+            private int data;
 
             /// <summary>
-            /// Наличие левого конектера
+            /// Предоставляет доступ к маске элемента
             /// </summary>
-            public bool left { get; protected set; }
-
-            /// <summary>
-            /// Блокировка
-            /// </summary>
-            public bool block { get; protected set; }
-
-            /// <summary>
-            /// Наличие сети
-            /// </summary>
-            public bool net { get; protected set; }
-
-            /// <summary>
-            /// Является ли узел ПК
-            /// </summary>
-            public bool pc { get; protected set; }
-
-            /// <summary>
-            /// Наличие правого конектера
-            /// </summary>
-            public bool right { get; protected set; }
-
-            /// <summary>
-            /// Является ли узел сервером
-            /// </summary>
-            public bool server { get; protected set; }
-
-            /// <summary>
-            /// Наличие верхнего конектера
-            /// </summary>
-            public bool up { get; protected set; }
+            public Mask mask
+            {
+                get
+                {
+                    return (Mask)data;
+                }
+                set
+                {
+                    data = (int)value;
+                }
+            }
 
             /// <summary>
             /// Количество контактов
@@ -60,114 +40,20 @@ namespace Connect
             {
                 get
                 {
-                    return (up ? 1 : 0) + (down ? 1 : 0) + (left ? 1 : 0) + (right ? 1 : 0);
+                    int a = data & 0x1;
+                    int b = (data >> 1) & 0x1;
+                    int c = (data >> 2) & 0x1;
+                    int d = (data >> 3) & 0x1;
+                    return a + b + c + d;
                 }
             }
-        }
-
-        /// <summary>
-        /// Клетка в игре
-        /// </summary>
-        private class Element : BaseElement
-        {
-            /// <summary>
-            /// Переменная для восстановления
-            /// </summary>
-            private bool rUp, rDown, rLeft, rRight;
-
-            /// <summary>
-            /// Переменная решения
-            /// </summary>
-            private bool oUp, oDown, oLeft, oRight;
-
-            /// <summary>
-            /// Копирования элемента
-            /// </summary>
-            /// <param name="obj"></param>
-            public void CopyElement(Element obj)
-            {
-                up = obj.up;
-                down = obj.down;
-                right = obj.right;
-                left = obj.left;
-            }
-
-            /// <summary>
-            /// Флаги направлений
-            /// </summary>
-            public Directions directions
-            {
-                get
-                {
-                    Directions d = (Directions)0x0;
-                    if (up)
-                        d = d | Directions.up;
-                    if (down)
-                        d = d | Directions.down;
-                    if (left)
-                        d = d | Directions.left;
-                    if (right)
-                        d = d | Directions.right;
-                    return d;
-                }
-                set
-                {
-                    up = value.HasFlag(Directions.up);
-                    down = value.HasFlag(Directions.down);
-                    left = value.HasFlag(Directions.left);
-                    right = value.HasFlag(Directions.right);
-                }
-            }
-
-            /// <summary>
-            /// Предоставляет доступ к свойству наличия сети
-            /// </summary>
-            public new bool net { get { return base.net; } set { base.net = value; } }
-
-            /// <summary>
-            /// Предоставляет доступ к свойству блокировки элемента
-            /// </summary>
-            public new bool block { get { return base.block; } set { base.block = value; } }
-
-            /// <summary>
-            /// Предоставляет доступ к свойству блокировки элемента
-            /// </summary>
-            public new bool pc { get { return base.pc; } set { base.pc = value; } }
-
-            /// <summary>
-            /// Предоставляет доступ к свойству блокировки элемента
-            /// </summary>
-            public new bool server { get { return base.server; } set { base.server = value; } }
-
-            /// <summary>
-            /// Предоставляет доступ к свойству блокировки элемента
-            /// </summary>
-            public new bool up { get { return base.up; } set { base.up = value; } }
-
-            /// <summary>
-            /// Предоставляет доступ к свойству блокировки элемента
-            /// </summary>
-            public new bool down { get { return base.down; } set { base.down = value; } }
-
-            /// <summary>
-            /// Предоставляет доступ к свойству блокировки элемента
-            /// </summary>
-            public new bool left { get { return base.left; } set { base.left = value; } }
-
-            /// <summary>
-            /// Предоставляет доступ к свойству блокировки элемента
-            /// </summary>
-            public new bool right { get { return base.right; } set { base.right = value; } }
 
             /// <summary>
             /// Сохранение верного решения
             /// </summary>
             public void SaveHint()
             {
-                oUp = up;
-                oDown = down;
-                oLeft = left;
-                oRight = right;
+                data = data & 0x000f << 8 | data & 0xf0ff;
             }
 
             /// <summary>
@@ -175,11 +61,7 @@ namespace Connect
             /// </summary>
             public void LoadHint()
             {
-                up = oUp;
-                down = oDown;
-                left = oLeft;
-                right = oRight;
-                block = true;
+                data = data & 0x0f00 >> 8 | data & 0xfff0 | (int)Mask.block;
             }
 
             /// <summary>
@@ -187,10 +69,7 @@ namespace Connect
             /// </summary>
             public void SaveRepeat()
             {
-                rUp = up;
-                rDown = down;
-                rLeft = left;
-                rRight = right;
+                data = data & 0x000f << 12 | data & 0x0fff;
             }
 
             /// <summary>
@@ -198,26 +77,15 @@ namespace Connect
             /// </summary>
             public void LoadRepeat()
             {
-                up = rUp;
-                down = rDown;
-                left = rLeft;
-                right = rRight;
-                block = false;
+                data = data & 0xf000 >> 12 | data & 0xff70;
             }
-
-            /* Проверяет правильность подключения
-            public bool Check()
-            {
-                return oUp == up && oDown == down && oLeft == left && oRight == right;
-            }
-            */
 
             /// <summary>
             /// Заблокировать | Разблокировать элемент
             /// </summary>
             public void LockUnlock()
             {
-                block = !block;
+                data = data | ~(int)Mask.block | (~data & (int)Mask.block) & (int)Mask.block;
             }
 
             /// <summary>
@@ -225,11 +93,7 @@ namespace Connect
             /// </summary>
             public void RotationLeft()
             {
-                bool temp = up;
-                up = left;
-                left = down;
-                down = right;
-                right = temp;
+                data = data & 0xfff0 | (data >> 1 & 0x007 | data & 0x0001 << 3);
             }
 
             /// <summary>
@@ -237,11 +101,7 @@ namespace Connect
             /// </summary>
             public void RotationRight()
             {
-                bool temp = up;
-                up = right;
-                right = down;
-                down = left;
-                left = temp;
+                data = data & 0xfff0 | (data << 1 | data >> 3 & 0x0001) & 0x000f;
             }
         }
 
@@ -303,7 +163,7 @@ namespace Connect
         /// <summary>
         /// Типы сложности игры
         /// </summary>
-        public enum Mode { Easy = 5, Normal = 7, Hard = 9, Expert = 9 }
+        public enum Mode { Easy, Normal, Hard, Expert}
 
         /// <summary>
         /// Тип хода
@@ -314,7 +174,13 @@ namespace Connect
         /// Направления
         /// </summary>
         [Flags]
-        public enum Directions { up = 0x01, right = 0x02, down = 0x04, left = 0x8 }
+        public enum Mask
+        {
+            up = 0x0001, right = 0x0002, down = 0x0004, left = 0x0008,
+            pc = 0x0010, server = 0x0020, net = 0x0040, block = 0x0080,
+            oUp = 0x0100, oRight = 0x0200, oDown = 0x0400, oleft = 0x0800,
+            rUp = 0x1000, rRight = 0x2000, rDown = 0x4000, rLeft = 0x8000
+        }
 
         /// <summary>
         /// Класс хода
@@ -340,12 +206,35 @@ namespace Connect
         /// <summary>
         /// Шаблоны элементов
         /// </summary>
-        private Element[] sampleElements;
+        private Mask[] sampleElements;
 
+        /// <summary>
+        /// Контейнер для хранения уровня сложности
+        /// </summary>
+        private Mode _mode;
         /// <summary>
         /// Сложность игры
         /// </summary>
-        public Mode mode { get; private set; }
+        public Mode mode
+        {
+            get
+            {
+                return _mode;
+            }
+            private set
+            {
+                _mode = value;
+                switch (value)
+                {
+                    case Mode.Easy: width = 5; break;
+                    case Mode.Normal: width = 7; break;
+                    case Mode.Hard: width = 9; break;
+                    case Mode.Expert: width = 9; break;
+                }
+            }
+        }
+
+        public int width { get; private set;  }
 
         /// <summary>
         /// Координата сервера
@@ -373,32 +262,34 @@ namespace Connect
         private int countDisconnectedPC;
 
         /// <summary>
+        /// Создание координаты из безмерного поля в реальное
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        private int CorrectionCoordinates(int x)
+        {
+            if (x < 0)
+            {
+                x = width - 1 + (x + 1) % width;
+            }
+            else if (x >= width)
+            {
+                x = x % width;
+            }
+            return x;
+        }
+
+        /// <summary>
         /// Предоставляет доступ к элементам поля
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <returns></returns>
-        public BaseElement this[int x, int y]
+        public Mask this[int x, int y]
         {
             get
             {
-                if (x < 0)
-                {
-                    x = (int)mode + x % (int)mode;
-                }
-                else if (x >= (int)mode)
-                {
-                    x = x % (int)mode;
-                }
-                if (y < 0)
-                {
-                    y = (int)mode + y % (int)mode;
-                }
-                else if (y >= (int)mode)
-                {
-                    y = y % (int)mode;
-                }
-                return elements[x, y];
+                return elements[CorrectionCoordinates(x), CorrectionCoordinates(y)].mask;
             }
         }
 
@@ -411,23 +302,7 @@ namespace Connect
         {
             get
             {
-                if (p.x < 0)
-                {
-                    p.x = (int)mode + p.x % (int)mode;
-                }
-                else if (p.x >= (int)mode)
-                {
-                    p.x = p.x % (int)mode;
-                }
-                if (p.y < 0)
-                {
-                    p.y = (int)mode + p.y % (int)mode;
-                }
-                else if (p.y >= (int)mode)
-                {
-                    p.y = p.y % (int)mode;
-                }
-                return elements[p.x, p.y];
+                return elements[CorrectionCoordinates(p.x), CorrectionCoordinates(p.y)];
             }
         }
 
@@ -437,11 +312,10 @@ namespace Connect
         public Core()
         {
             history = new List<Turn>();
-            sampleElements = new Element[15];
-            for (int i = 0; i < 15; i++)
+            sampleElements = new Mask[15];
+            for (int i = 1; i < 15; i++)
             {
-                sampleElements[i] = new Element();
-                sampleElements[i].directions = (Directions)i;
+                sampleElements[i] = (Mask)i;
             }
             elements = new Element[9, 9];
         }
@@ -451,7 +325,7 @@ namespace Connect
         /// </summary>
         public void NewGame()
         {
-            mode = Mode.Expert;
+            mode = Mode.Normal;
             CreateField();
         }
 
@@ -496,7 +370,7 @@ namespace Connect
                     elements[x, y].LockUnlock();
                     break;
                 case TypeTurn.left:
-                    if (elements[x, y].block)
+                    if (elements[x, y].mask.HasFlag(Mask.block))
                     {
                         elements[x, y].RotationLeft();
                         steps--;
@@ -504,7 +378,7 @@ namespace Connect
                     }
                     break;
                 case TypeTurn.right:
-                    if (elements[x, y].block)
+                    if (elements[x, y].mask.HasFlag(Mask.block))
                     {
                         elements[x, y].RotationRight();
                         steps--;
@@ -513,6 +387,11 @@ namespace Connect
                     break;
             }
             return countDisconnectedPC == 0;
+        }
+
+        public void CallHint(int x, int y)
+        {
+            elements[x, y].LoadHint();
         }
 
         /// <summary>
@@ -535,19 +414,19 @@ namespace Connect
         /// Возвращает соседнюю точку
         /// </summary>
         /// <param name="p"></param>
-        /// <param name="d"></param>
+        /// <param name="m"></param>
         /// <returns></returns>
-        private Point BesidePoint(Point p, Directions d)
+        private Point BesidePoint(Point p, Mask m)
         {
-            switch (d)
+            switch (m)
             {
-                case Directions.up:
+                case Mask.up:
                     return new Point(p.x, p.y - 1);
-                case Directions.down:
+                case Mask.down:
                     return new Point(p.x, p.y + 1);
-                case Directions.left:
+                case Mask.left:
                     return new Point(p.x - 1, p.y);
-                case Directions.right:
+                case Mask.right:
                     return new Point(p.x + 1, p.y);
                 default:
                     throw new Exception("Передано несколько направлений");
@@ -567,15 +446,14 @@ namespace Connect
 
             for (int i = 1; i < 16; i *= 2)
             {
-
-                if (this[p2].directions.HasFlag((Directions)i))
+                if (this[p2].mask.HasFlag((Mask)i))
                 {
-                    tempPoint = BesidePoint(p2, (Directions)i);
+                    tempPoint = BesidePoint(p2, (Mask)i);
                     if (tempPoint != p1)
                     {
                         tempListPoint.Add(tempPoint);
-                        this[tempPoint].directions = (this[tempPoint].directions 
-                            | (Directions)(((i << 4) | i) >> 2 & 0xf));
+                        this[tempPoint].mask = (this[tempPoint].mask
+                            | (Mask)(((i << 4) | i) >> 2 & 0xf));
                     }
                 }
             }
@@ -588,60 +466,86 @@ namespace Connect
         /// </summary>
         private void CreateField()
         {
-            for (int i = 0; i < (int)mode; i++)
-                for (int j = 0; j < (int)mode; j++)
+            for (int i = 0; i < width; i++)
+                for (int j = 0; j < width; j++)
                 {
                     elements[i, j] = new Element();
                 }
             Random rand = new Random();
-            server = new Point(rand.Next((int)mode), rand.Next((int)mode));
-            elements[server.x, server.y].server = true;
+            server = new Point(rand.Next(width), rand.Next(width));
+            elements[server.x, server.y].mask = elements[server.x, server.y].mask | Mask.server;
+
+            List<int> availableSamples = new List<int>();
+
             if (mode == Mode.Expert)
             {
-                this[server].CopyElement(sampleElements[rand.Next(14) + 1]);
-                List<Point> peaks = SetAround(new Point(-1, -1), server);
-                Point peak, netPoint;
-                List<int> availableSamples = new List<int>();
-                while (peaks.Count > 0)
-                {
-                    peak = peaks[rand.Next(peaks.Count)];
-                    availableSamples.Clear();
-                    netPoint = BesidePoint(peak, this[peak].directions);
-                    for (int i = 0; i < 15; i++)
-                    {
-                        if (sampleElements[i].directions.HasFlag(this[peak].directions))
-                        {
-                            availableSamples.Add(i);
-                        }
-                    }
-                    availableSamples.Remove((int)this[peak].directions);
-
-                    /*
-                        Данный цикл перебирает стороны по маске и отсекает невозможные пути
-                        развития лабиринта, с учётом ячейки из которой он пришёл.
-                    */
-                    for (int i = 1; i < 16; i *= 2)
-                    {
-                        if (this[BesidePoint(peak, (Directions)i)].connects > 0
-                            && !this[peak].directions.HasFlag((Directions)i))
-                        {
-                            for (int j = 0; j < 15; j++)
-                                if (sampleElements[j].directions.HasFlag((Directions)i))
-                                    availableSamples.Remove(j);
-                        }
-                    }
-
-                    if (availableSamples.Count != 0)
-                    {
-                        this[peak].CopyElement(sampleElements[availableSamples[rand.Next(availableSamples.Count)]]);
-                        peaks.AddRange(SetAround(netPoint, peak));
-                    }
-                    peaks.Remove(peak);
-                }
+                this[server].mask = this[server].mask | sampleElements[rand.Next(14) + 1];
             }
             else
             {
+                for (int i = 1; i < 15; i++)
+                {
+                    availableSamples.Add(i);
+                    for (int j = 1; j < 16; j *= 2)
+                    {
+                        Point tempPoint = BesidePoint(server, (Mask)j);
+                        if ((tempPoint.x < 0
+                            || tempPoint.x >= width
+                            || tempPoint.y < 0
+                            || tempPoint.y >= width)
+                            && sampleElements[i].HasFlag((Mask)j))
+                        {
+                            availableSamples.Remove(i);
+                        }
+                    }
+                }
+                this[server].mask = this[server].mask | sampleElements[availableSamples[rand.Next(availableSamples.Count)]];
+            }
+            List<Point> peaks = SetAround(new Point(-1, -1), server);
+            Point peak, netPoint;
+            while (peaks.Count > 0)
+            {
+                peak = peaks[rand.Next(peaks.Count)];
+                availableSamples.Clear();
 
+                netPoint = BesidePoint(peak, this[peak].mask);
+                for (int i = 1; i < 15; i++)
+                {
+                    if (sampleElements[i].HasFlag(this[peak].mask))
+                    {
+                        availableSamples.Add(i);
+                    }
+                }
+                availableSamples.RemoveAt(0);
+
+                /*
+                    Данный цикл перебирает стороны по маске и отсекает невозможные пути
+                    развития лабиринта, с учётом ячейки из которой он пришёл.
+                */
+                for (int i = 1; i < 16; i *= 2)
+                {
+                    Point tempPoint = BesidePoint(peak, (Mask)i);
+                    if ((this[tempPoint].connects > 0
+                        && !this[peak].mask.HasFlag((Mask)i)) 
+                        || (tempPoint.x < 0
+                            || tempPoint.x >= width
+                            || tempPoint.y < 0
+                            || tempPoint.y >= width
+                        ) && mode != Mode.Expert
+                        )
+                    {
+                        for (int j = 0; j < 15; j++)
+                            if (sampleElements[j].HasFlag((Mask)i))
+                                availableSamples.Remove(j);
+                    }
+                }
+
+                if (availableSamples.Count != 0)
+                {
+                    this[peak].mask = this[peak].mask | sampleElements[availableSamples[rand.Next(availableSamples.Count)]];
+                    peaks.AddRange(SetAround(netPoint, peak));
+                }
+                peaks.Remove(peak);
             }
 
             /*
@@ -649,15 +553,15 @@ namespace Connect
                 сохранение для повтора и расчёт количества ходов.
             */
             steps = 0;
-            for (int i = 0; i < (int)mode; i++)
-                for (int j = 0; j < (int)mode; j++)
+            for (int i = 0; i < width; i++)
+                for (int j = 0; j < width; j++)
                 {
-                    if (elements[i, j].connects == 1 && !elements[i, j].server)
+                    if (elements[i, j].connects == 1 && !elements[i, j].mask.HasFlag(Mask.server))
                     {
-                        elements[i, j].pc = true;
+                        elements[i, j].mask = elements[i, j].mask | Mask.pc;
                     }
                     elements[i, j].SaveHint();
-                    if ((int)elements[i, j].directions == 0)
+                    /*if ((int)elements[i, j].mask == 0)
                         continue;
                     switch (rand.Next(4))
                     {
@@ -668,7 +572,7 @@ namespace Connect
                             steps++;
                             break;
                         case 2:
-                            if ((int)elements[i, j].directions == 0xA || (int)elements[i, j].directions == 0x5)
+                            if ((int)elements[i, j].mask == 0x000a || (int)elements[i, j].mask == 0x0005)
                                 break;
                             elements[i, j].RotationRight();
                             elements[i, j].RotationRight();
@@ -679,10 +583,9 @@ namespace Connect
                             steps++;
                             break;
                     }
-                    elements[i, j].SaveRepeat();
+                    elements[i, j].SaveRepeat();*/
                 }
             rStep = steps;
-
         }
     }
 }
