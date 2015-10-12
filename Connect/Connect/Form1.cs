@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Runtime.InteropServices;
 
 namespace Connect
 {
@@ -25,8 +26,7 @@ namespace Connect
             core = new Core();
             core.NewGame();
             bgc = new BufferedGraphicsContext();
-            oldHeight = Height;
-            oldWidth = Width;
+            oldSize = Width;
         }
 
         private void Draw()
@@ -73,19 +73,9 @@ namespace Connect
         {
             Draw();
         }
-        int oldWidth, oldHeight;
+        int oldSize;
         private void Form1_Resize(object sender, EventArgs e)
         {
-            if (oldWidth != Width)
-            {
-                Height = Width;
-            }
-            else if (oldHeight != Height)
-            {
-                Width = Height;
-            }
-            oldHeight = Height;
-            oldWidth = Width;
             pictureBox1.Width = ClientRectangle.Height;
             pictureBox1.Height = ClientRectangle.Height;
             pictureBox1.Left = ClientRectangle.Width / 2 - pictureBox1.Width / 2;
@@ -93,5 +83,51 @@ namespace Connect
             bg.Dispose();
             bg = bgc.Allocate(pictureBox1.CreateGraphics(), pictureBox1.ClientRectangle);
         }
-    }
+
+
+		const int WM_SIZING = 0x214;
+		const int WMSZ_LEFT = 1;
+		const int WMSZ_RIGHT = 2;
+		const int WMSZ_TOP = 3;
+		const int WMSZ_BOTTOM = 6;
+		public struct RECT {
+			public int Left;
+			public int Top;
+			public int Right;
+			public int Bottom;
+		}
+		protected override void WndProc(ref Message m) {
+			if(m.Msg == WM_SIZING) {
+				RECT rc = (RECT)Marshal.PtrToStructure(m.LParam, typeof(RECT));
+				int res = m.WParam.ToInt32();
+				if(res == WMSZ_LEFT || res == WMSZ_RIGHT) {
+					//Left or right resize -> adjust height (bottom)
+					rc.Bottom = rc.Top + Width;;
+				}
+				else if(res == WMSZ_TOP || res == WMSZ_BOTTOM) {
+					//Up or down resize -> adjust width (right)
+					rc.Right = rc.Left + Height;
+				}
+				else if(res == WMSZ_RIGHT + WMSZ_BOTTOM) {
+					//Lower-right corner resize -> adjust height (could have been width)
+					rc.Bottom = rc.Top + Width;
+				}
+				else if(res == WMSZ_LEFT + WMSZ_TOP) {
+					//Upper-left corner -> adjust width (could have been height)
+					rc.Left = rc.Right - Height;
+				}
+				else if(res == WMSZ_LEFT + WMSZ_BOTTOM) {
+					//
+					rc.Bottom = rc.Top + Width;
+				}
+				else if(res == WMSZ_RIGHT + WMSZ_TOP) {
+					//
+					rc.Right = rc.Left + Height;
+				}
+				Marshal.StructureToPtr(rc, m.LParam, true);
+			}
+
+			base.WndProc(ref m);
+		}
+	}
 }
