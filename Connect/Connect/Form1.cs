@@ -19,6 +19,7 @@ namespace Connect
         Graphics graphics;
         BufferedGraphics bg;
         BufferedGraphicsContext bgc;
+        int dXFormWidth, dYFormHeight, dSize;
 
         public Form1()
         {
@@ -26,6 +27,10 @@ namespace Connect
             core = new Core();
             core.NewGame();
             bgc = new BufferedGraphicsContext();
+            dXFormWidth = Width - ClientSize.Width;
+            dYFormHeight = Height - ClientSize.Height;
+            dSize = dYFormHeight - dXFormWidth;
+            MinimumSize = new Size(300 + dXFormWidth, 300 + dYFormHeight);
         }
 
         private void Draw()
@@ -66,7 +71,7 @@ namespace Connect
                 core.NewGame();
                 Draw();
             }
-				}
+        }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
@@ -75,40 +80,53 @@ namespace Connect
 
         private void Form1_Resize(object sender, EventArgs e)
         {
-            pictureBox1.Width = ClientRectangle.Height;
-            pictureBox1.Height = ClientRectangle.Height;
-            pictureBox1.Left = ClientRectangle.Width / 2 - pictureBox1.Width / 2;
-            pictureBox1.Top = 0;
+            pictureBox1.Width = ClientRectangle.Width;
+            pictureBox1.Height = ClientRectangle.Width;
             bg.Dispose();
             bg = bgc.Allocate(pictureBox1.CreateGraphics(), pictureBox1.ClientRectangle);
+            Text = ClientSize.Width.ToString() + ' ' + ClientSize.Height.ToString();
         }
 
 
-		const int WM_SIZING = 0x214;
-		const int WMSZ_LEFT = 1;
-		const int WMSZ_RIGHT = 2;
-		const int WMSZ_TOP = 3;
-		const int WMSZ_BOTTOM = 6;
+        const int WM_SIZING = 0x214;
+        const int WMSZ_LEFT = 1;
+        const int WMSZ_RIGHT = 2;
+        const int WMSZ_TOP = 3;
 
-		protected override void WndProc(ref Message m) {
-			if(m.Msg == WM_SIZING) {
-				Rectangle rc = (Rectangle)Marshal.PtrToStructure(m.LParam, typeof(Rectangle));
-				int res = m.WParam.ToInt32();
-				if(res == WMSZ_LEFT + WMSZ_TOP) {
-					//Upper-left corner -> adjust width (could have been height)
-					rc.X = rc.Width - Height;
-				}
-				else if(res == WMSZ_TOP || res == WMSZ_BOTTOM || res == WMSZ_RIGHT + WMSZ_TOP || res == WMSZ_RIGHT + WMSZ_TOP) {
-					//Up or down resize -> adjust width (right)
-					rc.Width = rc.Left + Height;
-				}
-				else if(res == WMSZ_LEFT || res == WMSZ_RIGHT || res == WMSZ_RIGHT + WMSZ_BOTTOM || res == WMSZ_LEFT + WMSZ_BOTTOM) {
-					//Lower-right corner resize -> adjust height (could have been width)
-					rc.Height = rc.Top + Width;
-				}
-				Marshal.StructureToPtr(rc, m.LParam, true);
-			}
-			base.WndProc(ref m);
-		}
-	}
+        private void Form1_ResizeEnd(object sender, EventArgs e)
+        {
+            if (ClientSize.Width != ClientSize.Height)
+            {
+                ClientSize = new Size(ClientSize.Height, ClientSize.Height);
+            }
+        }
+
+        const int WMSZ_BOTTOM = 6;
+
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == WM_SIZING)
+            {
+                Rectangle rc = (Rectangle)Marshal.PtrToStructure(m.LParam, typeof(Rectangle));
+                int res = m.WParam.ToInt32();
+                if (res == WMSZ_LEFT + WMSZ_TOP)
+                {
+                    //Upper-left corner -> adjust width (could have been height)
+                    rc.X = rc.Width - Height + dSize;
+                }
+                else if (res == WMSZ_TOP || res == WMSZ_BOTTOM || res == WMSZ_RIGHT + WMSZ_TOP)
+                {
+                    //Up or down resize -> adjust width (right)
+                    rc.Width = rc.Left + Height - dSize;
+                }
+                else if (res == WMSZ_LEFT || res == WMSZ_RIGHT || res == WMSZ_RIGHT + WMSZ_BOTTOM || res == WMSZ_LEFT + WMSZ_BOTTOM)
+                {
+                    //Lower-right corner resize -> adjust height (could have been width)
+                    rc.Height = rc.Top + Width + dSize;
+                }
+                Marshal.StructureToPtr(rc, m.LParam, true);
+            }
+            base.WndProc(ref m);
+        }
+    }
 }
