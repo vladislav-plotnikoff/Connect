@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Connect
 {
@@ -40,11 +37,7 @@ namespace Connect
             {
                 get
                 {
-                    int a = data & 0x1;
-                    int b = (data >> 1) & 0x1;
-                    int c = (data >> 2) & 0x1;
-                    int d = (data >> 3) & 0x1;
-                    return a + b + c + d;
+										return (data & 0x1) + (data >> 1 & 0x1) + (data >> 2 & 0x1) + (data >> 3 & 0x1);
                 }
             }
 
@@ -85,7 +78,7 @@ namespace Connect
             /// </summary>
             public void LockUnlock()
             {
-                data = data | ~(int)Mask.block | (~data & (int)Mask.block) & (int)Mask.block;
+								data = data ^ (int)Mask.block;
             }
 
             /// <summary>
@@ -268,15 +261,7 @@ namespace Connect
         /// <returns></returns>
         private int CorrectionCoordinates(int x)
         {
-            if (x < 0)
-            {
-                x = width - 1 + (x + 1) % width;
-            }
-            else if (x >= width)
-            {
-                x = x % width;
-            }
-            return x;
+						return x < 0 ? width - 1 + (x + 1) % width : x % width;
         }
 
         /// <summary>
@@ -325,7 +310,7 @@ namespace Connect
         /// </summary>
         public void NewGame()
         {
-            mode = Mode.Normal;
+            mode = Mode.Expert;
             CreateField();
         }
 
@@ -335,8 +320,9 @@ namespace Connect
         /// <param name="mode">Уровень сложности</param>
         public void NewGame(Mode mode)
         {
-
-        }
+						this.mode = mode;
+						CreateField();
+				}
 
         /// <summary>
         /// Повторить игру

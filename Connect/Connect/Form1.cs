@@ -26,7 +26,6 @@ namespace Connect
             core = new Core();
             core.NewGame();
             bgc = new BufferedGraphicsContext();
-            oldSize = Width;
         }
 
         private void Draw()
@@ -67,13 +66,13 @@ namespace Connect
                 core.NewGame();
                 Draw();
             }
-        }
+				}
 
         private void timer1_Tick(object sender, EventArgs e)
         {
             Draw();
         }
-        int oldSize;
+
         private void Form1_Resize(object sender, EventArgs e)
         {
             pictureBox1.Width = ClientRectangle.Height;
