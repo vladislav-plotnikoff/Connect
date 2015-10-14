@@ -86,7 +86,7 @@ namespace Connect
             /// </summary>
             public void RotationLeft()
             {
-                data = data & 0xfff0 | (data >> 1 & 0x007 | data & 0x0001 << 3);
+                data = data & 0xfff0 | (data >> 1 & 0x007 | data << 3 ) & 0x000f;
             }
 
             /// <summary>
@@ -356,7 +356,7 @@ namespace Connect
                     elements[x, y].LockUnlock();
                     break;
                 case TypeTurn.left:
-                    if (elements[x, y].mask.HasFlag(Mask.block))
+                    if (!elements[x, y].mask.HasFlag(Mask.block))
                     {
                         elements[x, y].RotationLeft();
                         steps--;
@@ -364,7 +364,7 @@ namespace Connect
                     }
                     break;
                 case TypeTurn.right:
-                    if (elements[x, y].mask.HasFlag(Mask.block))
+                    if (!elements[x, y].mask.HasFlag(Mask.block))
                     {
                         elements[x, y].RotationRight();
                         steps--;

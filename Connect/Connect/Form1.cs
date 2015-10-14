@@ -31,7 +31,9 @@ namespace Connect
             dYFormHeight = Height - ClientSize.Height;
             dSize = dYFormHeight - dXFormWidth;
             MinimumSize = new Size(300 + dXFormWidth, 300 + dYFormHeight);
-        }
+			pictureBox1.Width = ClientRectangle.Width;
+			pictureBox1.Height = ClientRectangle.Width;
+		}
 
         private void Draw()
         {
@@ -58,7 +60,7 @@ namespace Connect
                     }
                 bg.Render();
             }
-            catch (NullReferenceException e)
+            catch (NullReferenceException)
             {
                 bg = bgc.Allocate(pictureBox1.CreateGraphics(), pictureBox1.ClientRectangle);
             }
@@ -69,7 +71,6 @@ namespace Connect
             if (e.KeyCode == Keys.F2)
             {
                 core.NewGame();
-                Draw();
             }
         }
 
@@ -84,9 +85,7 @@ namespace Connect
             pictureBox1.Height = ClientRectangle.Width;
             bg.Dispose();
             bg = bgc.Allocate(pictureBox1.CreateGraphics(), pictureBox1.ClientRectangle);
-            Text = ClientSize.Width.ToString() + ' ' + ClientSize.Height.ToString();
         }
-
 
         const int WM_SIZING = 0x214;
         const int WMSZ_LEFT = 1;
@@ -101,7 +100,21 @@ namespace Connect
             }
         }
 
-        const int WMSZ_BOTTOM = 6;
+		private void pictureBox1_MouseClick(object sender, MouseEventArgs e) {
+			switch(e.Button) {
+				case MouseButtons.Left:
+					core.NewTurn(0, 1, Core.TypeTurn.left);
+					break;
+				case MouseButtons.Right:
+					core.NewTurn(0, 1, Core.TypeTurn.right);
+					break;
+				case MouseButtons.Middle:
+					core.NewTurn(0, 1, Core.TypeTurn.block);
+					break;
+			}
+		}
+
+		const int WMSZ_BOTTOM = 6;
 
         protected override void WndProc(ref Message m)
         {
@@ -111,17 +124,14 @@ namespace Connect
                 int res = m.WParam.ToInt32();
                 if (res == WMSZ_LEFT + WMSZ_TOP)
                 {
-                    //Upper-left corner -> adjust width (could have been height)
                     rc.X = rc.Width - Height + dSize;
                 }
                 else if (res == WMSZ_TOP || res == WMSZ_BOTTOM || res == WMSZ_RIGHT + WMSZ_TOP)
                 {
-                    //Up or down resize -> adjust width (right)
                     rc.Width = rc.Left + Height - dSize;
                 }
                 else if (res == WMSZ_LEFT || res == WMSZ_RIGHT || res == WMSZ_RIGHT + WMSZ_BOTTOM || res == WMSZ_LEFT + WMSZ_BOTTOM)
                 {
-                    //Lower-right corner resize -> adjust height (could have been width)
                     rc.Height = rc.Top + Width + dSize;
                 }
                 Marshal.StructureToPtr(rc, m.LParam, true);
