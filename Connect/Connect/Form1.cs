@@ -19,7 +19,7 @@ namespace Connect
         Graphics graphics;
         BufferedGraphics bg;
         BufferedGraphicsContext bgc;
-        int dXFormWidth, dYFormHeight, dSize;
+        private int dXFormWidth, dYFormHeight, dSize, cellSize;
 
         public Form1()
         {
@@ -31,39 +31,35 @@ namespace Connect
             dYFormHeight = Height - ClientSize.Height;
             dSize = dYFormHeight - dXFormWidth;
             MinimumSize = new Size(300 + dXFormWidth, 300 + dYFormHeight);
-			pictureBox1.Width = ClientRectangle.Width;
-			pictureBox1.Height = ClientRectangle.Width;
+
+			bg = bgc.Allocate(pictureBox1.CreateGraphics(), pictureBox1.ClientRectangle);
+			ClientSize = new Size(ClientSize.Height, ClientSize.Height);
 		}
 
         private void Draw()
         {
             Core.Mask mask;
-            try
-            {
+
                 bg.Graphics.Clear(Color.Black);
                 for (int i = 0; i < core.width; i++)
                     for (int j = 0; j < core.width; j++)
                     {
                         mask = core[i, j];
+
                         if (mask.HasFlag(Core.Mask.left))
-                            bg.Graphics.FillRectangle(Brushes.White, i * 60, j * 60 + 25, 35, 10);
+                            bg.Graphics.FillRectangle(Brushes.White, i * cellSize, j * cellSize + 25, 35, 10);
                         if (mask.HasFlag(Core.Mask.right))
-                            bg.Graphics.FillRectangle(Brushes.White, i * 60 + 25, j * 60 + 25, 35, 10);
+                            bg.Graphics.FillRectangle(Brushes.White, i * cellSize + 25, j * cellSize + 25, 35, 10);
                         if (mask.HasFlag(Core.Mask.up))
-                            bg.Graphics.FillRectangle(Brushes.White, i * 60 + 25, j * 60, 10, 35);
+                            bg.Graphics.FillRectangle(Brushes.White, i * cellSize + 25, j * cellSize, 10, 35);
                         if (mask.HasFlag(Core.Mask.down))
-                            bg.Graphics.FillRectangle(Brushes.White, i * 60 + 25, j * 60 + 25, 10, 35);
+                            bg.Graphics.FillRectangle(Brushes.White, i * cellSize + 25, j * cellSize + 25, 10, 35);
                         if (mask.HasFlag(Core.Mask.pc))
-                            bg.Graphics.FillRectangle(Brushes.Red, i * 60 + 10, j * 60 + 10, 40, 40);
+                            bg.Graphics.FillRectangle(Brushes.Red, i * cellSize + 10, j * cellSize + 10, 40, 40);
                         if (mask.HasFlag(Core.Mask.server))
-                            bg.Graphics.FillRectangle(Brushes.Blue, i * 60 + 10, j * 60 + 10, 40, 40);
+                            bg.Graphics.FillRectangle(Brushes.Blue, i * cellSize + 10, j * cellSize + 10, 40, 40);
                     }
                 bg.Render();
-            }
-            catch (NullReferenceException)
-            {
-                bg = bgc.Allocate(pictureBox1.CreateGraphics(), pictureBox1.ClientRectangle);
-            }
         }
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
@@ -83,6 +79,7 @@ namespace Connect
         {
             pictureBox1.Width = ClientRectangle.Width;
             pictureBox1.Height = ClientRectangle.Width;
+			cellSize = ClientRectangle.Width / core.width;
             bg.Dispose();
             bg = bgc.Allocate(pictureBox1.CreateGraphics(), pictureBox1.ClientRectangle);
         }
