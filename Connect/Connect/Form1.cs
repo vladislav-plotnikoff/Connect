@@ -14,12 +14,12 @@ namespace Connect
     public partial class Form1 : Form
     {
         private Core core;
-        private Bitmap bitmap;
-        private Bitmap fon;
-        Graphics graphics;
-        BufferedGraphics bg;
-        BufferedGraphicsContext bgc;
+        private Bitmap bitmap, fon;
+		private Graphics graphics;
+		private BufferedGraphics bg;
+		private BufferedGraphicsContext bgc;
         private int dXFormWidth, dYFormHeight, dSize, cellSize;
+		private bool changes;
 
         public Form1()
         {
@@ -34,6 +34,7 @@ namespace Connect
 
 			bg = bgc.Allocate(pictureBox1.CreateGraphics(), pictureBox1.ClientRectangle);
 			ClientSize = new Size(ClientSize.Height, ClientSize.Height);
+			changes = true;
 		}
 
         private void Draw()
@@ -72,7 +73,11 @@ namespace Connect
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            Draw();
+					if(changes) {
+				Draw();
+				changes = false;
+			}
+            
         }
 
         private void Form1_Resize(object sender, EventArgs e)
@@ -82,6 +87,7 @@ namespace Connect
 			cellSize = ClientRectangle.Width / core.width;
             bg.Dispose();
             bg = bgc.Allocate(pictureBox1.CreateGraphics(), pictureBox1.ClientRectangle);
+			changes = true;
         }
 
         const int WM_SIZING = 0x214;
@@ -101,12 +107,15 @@ namespace Connect
 			switch(e.Button) {
 				case MouseButtons.Left:
 					core.NewTurn(0, 1, Core.TypeTurn.left);
+					changes = true;
 					break;
 				case MouseButtons.Right:
 					core.NewTurn(0, 1, Core.TypeTurn.right);
+					changes = true;
 					break;
 				case MouseButtons.Middle:
 					core.NewTurn(0, 1, Core.TypeTurn.block);
+					changes = true;
 					break;
 			}
 		}
