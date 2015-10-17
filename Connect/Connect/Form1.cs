@@ -15,11 +15,12 @@ namespace Connect
     {
         private Core core;
         private Bitmap bitmap, fon;
-		private Graphics graphics;
-		private BufferedGraphics bg;
-		private BufferedGraphicsContext bgc;
-        private int dXFormWidth, dYFormHeight, dSize, cellSize;
-		private bool changes;
+        private Graphics graphics;
+        private BufferedGraphics bg;
+        private BufferedGraphicsContext bgc;
+        private int dXFormWidth, dYFormHeight, dSize;
+        private float cellSize;
+        private Brush netBrush;
 
         public Form1()
         {
@@ -29,38 +30,54 @@ namespace Connect
             bgc = new BufferedGraphicsContext();
             dXFormWidth = Width - ClientSize.Width;
             dYFormHeight = Height - ClientSize.Height;
-            dSize = dYFormHeight - dXFormWidth;
-            MinimumSize = new Size(300 + dXFormWidth, 300 + dYFormHeight);
+            dSize = dYFormHeight - dXFormWidth + 30;
+            MinimumSize = new Size(300 + dXFormWidth, 330 + dYFormHeight);
 
-			bg = bgc.Allocate(pictureBox1.CreateGraphics(), pictureBox1.ClientRectangle);
-			ClientSize = new Size(ClientSize.Height, ClientSize.Height);
-			changes = true;
-		}
+            fon = new Bitmap(540, 540);
+            for (int i = 0; i < 540; i++)
+                for (int j = 0; j < 540; j++)
+                    fon.SetPixel(i, j, Color.FromArgb(
+                        0 + (int)Math.Round(Math.Sqrt((i - 270) * (i - 270) + (270 - j) * (270 - j)) * (7) / 270.0),
+                        102 + (int)Math.Round(Math.Sqrt((i - 270) * (i - 270) + (270 - j) * (270 - j)) * (-46) / 270.0),
+                        255 + (int)Math.Round(Math.Sqrt((i - 270) * (i - 270) + (270 - j) * (270 - j)) * (-97) / 270.0)
+                        ));
+
+            bg = bgc.Allocate(pictureBox1.CreateGraphics(), pictureBox1.ClientRectangle);
+            bg.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+            ClientSize = new Size(540, 570);
+
+            menuButton.Top = 540;
+            menuButton.Left = 75;
+            menuButton.Width = 390;
+            stepsLabel.CreateGraphics().TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+        }
 
         private void Draw()
         {
             Core.Mask mask;
 
-                bg.Graphics.Clear(Color.Black);
-                for (int i = 0; i < core.width; i++)
-                    for (int j = 0; j < core.width; j++)
-                    {
-                        mask = core[i, j];
-
-                        if (mask.HasFlag(Core.Mask.left))
-                            bg.Graphics.FillRectangle(Brushes.White, i * cellSize, j * cellSize + 25, 35, 10);
-                        if (mask.HasFlag(Core.Mask.right))
-                            bg.Graphics.FillRectangle(Brushes.White, i * cellSize + 25, j * cellSize + 25, 35, 10);
-                        if (mask.HasFlag(Core.Mask.up))
-                            bg.Graphics.FillRectangle(Brushes.White, i * cellSize + 25, j * cellSize, 10, 35);
-                        if (mask.HasFlag(Core.Mask.down))
-                            bg.Graphics.FillRectangle(Brushes.White, i * cellSize + 25, j * cellSize + 25, 10, 35);
-                        if (mask.HasFlag(Core.Mask.pc))
-                            bg.Graphics.FillRectangle(Brushes.Red, i * cellSize + 10, j * cellSize + 10, 40, 40);
-                        if (mask.HasFlag(Core.Mask.server))
-                            bg.Graphics.FillRectangle(Brushes.Blue, i * cellSize + 10, j * cellSize + 10, 40, 40);
-                    }
-                bg.Render();
+            bg.Graphics.DrawImage(fon, pictureBox1.ClientRectangle);
+            for (int i = 0; i < core.width; i++)
+                for (int j = 0; j < core.width; j++)
+                {
+                    mask = core[i, j];
+                    netBrush = mask.HasFlag(Core.Mask.net) ? Brushes.CornflowerBlue : Brushes.Gainsboro;
+                    if (mask.HasFlag(Core.Mask.left))
+                        bg.Graphics.FillRectangle(netBrush, i * cellSize, j * cellSize + cellSize / 9F * 4F, cellSize / 9F * 5F, cellSize / 9F * 1F);
+                    if (mask.HasFlag(Core.Mask.right))
+                        bg.Graphics.FillRectangle(netBrush, i * cellSize + cellSize / 9F * 4F, j * cellSize + cellSize / 9F * 4F, cellSize / 9F * 5F, cellSize / 9F * 1F);
+                    if (mask.HasFlag(Core.Mask.up))
+                        bg.Graphics.FillRectangle(netBrush, i * cellSize + cellSize / 9F * 4F, j * cellSize, cellSize / 9F * 1F, cellSize / 9F * 5F);
+                    if (mask.HasFlag(Core.Mask.down))
+                        bg.Graphics.FillRectangle(netBrush, i * cellSize + cellSize / 9F * 4F, j * cellSize + cellSize / 9F * 4F, cellSize / 9F * 1F, cellSize / 9F * 5F);
+                    if (mask.HasFlag(Core.Mask.pc))
+                        if (mask.HasFlag(Core.Mask.net))
+                            bg.Graphics.DrawImage(Properties.Resources.PCNet, i * cellSize + cellSize / 9F * 1F, j * cellSize + cellSize / 9F * 1F, cellSize / 9F * 7F, cellSize / 9F * 7F);
+                        else
+                            bg.Graphics.DrawImage(Properties.Resources.PC, i * cellSize + cellSize / 9F * 1F, j * cellSize + cellSize / 9F * 1F, cellSize / 9F * 7F, cellSize / 9F * 7F);
+                    if (mask.HasFlag(Core.Mask.server))
+                        bg.Graphics.DrawImage(Properties.Resources.Server, i * cellSize + cellSize / 9F * 1F, j * cellSize + cellSize / 9F * 1F, cellSize / 9F * 7F, cellSize / 9F * 7F);
+                }
         }
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
@@ -68,26 +85,23 @@ namespace Connect
             if (e.KeyCode == Keys.F2)
             {
                 core.NewGame();
+                Draw();
             }
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-					if(changes) {
-				Draw();
-				changes = false;
-			}
-            
+            bg.Render();
         }
 
         private void Form1_Resize(object sender, EventArgs e)
         {
             pictureBox1.Width = ClientRectangle.Width;
             pictureBox1.Height = ClientRectangle.Width;
-			cellSize = ClientRectangle.Width / core.width;
+            cellSize = (float)ClientRectangle.Width / core.width;
             bg.Dispose();
             bg = bgc.Allocate(pictureBox1.CreateGraphics(), pictureBox1.ClientRectangle);
-			changes = true;
+            Draw();
         }
 
         const int WM_SIZING = 0x214;
@@ -97,30 +111,32 @@ namespace Connect
 
         private void Form1_ResizeEnd(object sender, EventArgs e)
         {
-            if (ClientSize.Width != ClientSize.Height)
+            if (ClientSize.Width != ClientSize.Height + 30)
             {
-                ClientSize = new Size(ClientSize.Height, ClientSize.Height);
+                ClientSize = new Size(ClientSize.Width, ClientSize.Width + 30);
             }
         }
 
-		private void pictureBox1_MouseClick(object sender, MouseEventArgs e) {
-			switch(e.Button) {
-				case MouseButtons.Left:
-					core.NewTurn(0, 1, Core.TypeTurn.left);
-					changes = true;
-					break;
-				case MouseButtons.Right:
-					core.NewTurn(0, 1, Core.TypeTurn.right);
-					changes = true;
-					break;
-				case MouseButtons.Middle:
-					core.NewTurn(0, 1, Core.TypeTurn.block);
-					changes = true;
-					break;
-			}
-		}
+        private void pictureBox1_MouseClick(object sender, MouseEventArgs e)
+        {
+            switch (e.Button)
+            {
+                case MouseButtons.Left:
+                    core.NewTurn(0, 1, Core.TypeTurn.left);
+                    Draw();
+                    break;
+                case MouseButtons.Right:
+                    core.NewTurn(0, 1, Core.TypeTurn.right);
+                    Draw();
+                    break;
+                case MouseButtons.Middle:
+                    core.NewTurn(0, 1, Core.TypeTurn.block);
+                    Draw();
+                    break;
+            }
+        }
 
-		const int WMSZ_BOTTOM = 6;
+        const int WMSZ_BOTTOM = 6;
 
         protected override void WndProc(ref Message m)
         {

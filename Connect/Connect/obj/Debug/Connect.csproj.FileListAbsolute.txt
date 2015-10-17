@@ -24,3 +24,4 @@ D:\root\Documents\GitHub\Connect\Connect\Connect\obj\Debug\Connect.Properties.Re
 D:\root\Documents\GitHub\Connect\Connect\Connect\obj\Debug\Connect.csproj.GenerateResource.Cache
 D:\root\Documents\GitHub\Connect\Connect\Connect\bin\Debug\Connect.exe
 D:\root\Documents\GitHub\Connect\Connect\Connect\bin\Debug\Connect.pdb
+C:\Users\User\Documents\GitHub\Connect\Connect\Connect\obj\Debug\Connect.Form1.resources
