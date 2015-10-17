@@ -14,7 +14,7 @@ namespace Connect
     public partial class Form1 : Form
     {
         private Core core;
-        private Bitmap bitmap, fon;
+        private Bitmap bitmap, fon, pc, pcNet, server;
         private Graphics graphics;
         private BufferedGraphics bg;
         private BufferedGraphicsContext bgc;
@@ -41,6 +41,16 @@ namespace Connect
                         102 + (int)Math.Round(Math.Sqrt((i - 270) * (i - 270) + (270 - j) * (270 - j)) * (-46) / 270.0),
                         255 + (int)Math.Round(Math.Sqrt((i - 270) * (i - 270) + (270 - j) * (270 - j)) * (-97) / 270.0)
                         ));
+
+            pc = new Bitmap(200, 200);
+            graphics = Graphics.FromImage(pc);
+            graphics.DrawImage(Properties.Resources.PC, 0, 0, 200, 200);
+            pcNet = new Bitmap(200, 200);
+            graphics = Graphics.FromImage(pcNet);
+            graphics.DrawImage(Properties.Resources.PCNet, 0, 0, 200, 200);
+            server = new Bitmap(200, 200);
+            graphics = Graphics.FromImage(server);
+            graphics.DrawImage(Properties.Resources.Server, 0, 0, 200, 200);
 
             bg = bgc.Allocate(pictureBox1.CreateGraphics(), pictureBox1.ClientRectangle);
             bg.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
@@ -72,11 +82,11 @@ namespace Connect
                         bg.Graphics.FillRectangle(netBrush, i * cellSize + cellSize / 9F * 4F, j * cellSize + cellSize / 9F * 4F, cellSize / 9F * 1F, cellSize / 9F * 5F);
                     if (mask.HasFlag(Core.Mask.pc))
                         if (mask.HasFlag(Core.Mask.net))
-                            bg.Graphics.DrawImage(Properties.Resources.PCNet, i * cellSize + cellSize / 9F * 1F, j * cellSize + cellSize / 9F * 1F, cellSize / 9F * 7F, cellSize / 9F * 7F);
+                            bg.Graphics.DrawImage(pcNet, i * cellSize + cellSize / 9F * 1F, j * cellSize + cellSize / 9F * 1F, cellSize / 9F * 7F, cellSize / 9F * 7F);
                         else
-                            bg.Graphics.DrawImage(Properties.Resources.PC, i * cellSize + cellSize / 9F * 1F, j * cellSize + cellSize / 9F * 1F, cellSize / 9F * 7F, cellSize / 9F * 7F);
+                            bg.Graphics.DrawImage(pc, i * cellSize + cellSize / 9F * 1F, j * cellSize + cellSize / 9F * 1F, cellSize / 9F * 7F, cellSize / 9F * 7F);
                     if (mask.HasFlag(Core.Mask.server))
-                        bg.Graphics.DrawImage(Properties.Resources.Server, i * cellSize + cellSize / 9F * 1F, j * cellSize + cellSize / 9F * 1F, cellSize / 9F * 7F, cellSize / 9F * 7F);
+                        bg.Graphics.DrawImage(server, i * cellSize + cellSize / 9F * 1F, j * cellSize + cellSize / 9F * 1F, cellSize / 9F * 7F, cellSize / 9F * 7F);
                 }
         }
 
@@ -117,23 +127,21 @@ namespace Connect
             }
         }
 
-        private void pictureBox1_MouseClick(object sender, MouseEventArgs e)
+        private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
         {
             switch (e.Button)
             {
                 case MouseButtons.Left:
                     core.NewTurn(0, 1, Core.TypeTurn.left);
-                    Draw();
                     break;
                 case MouseButtons.Right:
                     core.NewTurn(0, 1, Core.TypeTurn.right);
-                    Draw();
                     break;
                 case MouseButtons.Middle:
                     core.NewTurn(0, 1, Core.TypeTurn.block);
-                    Draw();
                     break;
             }
+            Draw();
         }
 
         const int WMSZ_BOTTOM = 6;
