@@ -132,13 +132,13 @@ namespace Connect
             switch (e.Button)
             {
                 case MouseButtons.Left:
-                    core.NewTurn(0, 1, Core.TypeTurn.left);
+                    core.NewTurn(e.X / (int)cellSize, e.Y / (int)cellSize, Core.TypeTurn.left);
                     break;
                 case MouseButtons.Right:
-                    core.NewTurn(0, 1, Core.TypeTurn.right);
+                    core.NewTurn(e.X / (int)cellSize, e.Y / (int)cellSize, Core.TypeTurn.right);
                     break;
                 case MouseButtons.Middle:
-                    core.NewTurn(0, 1, Core.TypeTurn.block);
+                    core.NewTurn(e.X / core.width, e.Y / core.width, Core.TypeTurn.block);
                     break;
             }
             Draw();
