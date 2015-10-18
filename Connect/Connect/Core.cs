@@ -62,7 +62,7 @@ namespace Connect
             /// </summary>
             public void SaveRepeat()
             {
-                data = data & 0x000f << 12 | data & 0x0fff;
+                data = (data & 0x000f) << 12 | (data & 0x0fff);
             }
 
             /// <summary>
@@ -70,7 +70,7 @@ namespace Connect
             /// </summary>
             public void LoadRepeat()
             {
-                data = data & 0xf000 >> 12 | data & 0xff70;
+                data = (data & 0xf000) >> 12 | (data & 0xff70);
             }
 
             /// <summary>
@@ -329,7 +329,9 @@ namespace Connect
         /// </summary>
         public void RepeatGame()
         {
-
+					foreach(Element el in elements) {
+						el.LoadRepeat();
+					}
         }
 
         /// <summary>
@@ -547,7 +549,7 @@ namespace Connect
                         elements[i, j].mask = elements[i, j].mask | Mask.pc;
                     }
                     elements[i, j].SaveHint();
-                    /*if ((int)elements[i, j].mask == 0)
+                    if ((int)elements[i, j].mask == 0)
                         continue;
                     switch (rand.Next(4))
                     {
@@ -569,7 +571,7 @@ namespace Connect
                             steps++;
                             break;
                     }
-                    elements[i, j].SaveRepeat();*/
+                    elements[i, j].SaveRepeat();
                 }
             rStep = steps;
         }

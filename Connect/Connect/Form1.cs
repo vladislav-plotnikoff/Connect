@@ -92,11 +92,16 @@ namespace Connect
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.F2)
-            {
-                core.NewGame();
-                Draw();
-            }
+          switch(e.KeyCode) {
+						case Keys.F2:
+              core.NewGame();
+              Draw();
+							break;
+						case Keys.F3:
+							core.RepeatGame();
+							Draw();
+							break;
+					}
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -138,7 +143,7 @@ namespace Connect
                     core.NewTurn(e.X / (int)cellSize, e.Y / (int)cellSize, Core.TypeTurn.right);
                     break;
                 case MouseButtons.Middle:
-                    core.NewTurn(e.X / core.width, e.Y / core.width, Core.TypeTurn.block);
+                    core.NewTurn(e.X / (int)cellSize, e.Y / (int)cellSize, Core.TypeTurn.block);
                     break;
             }
             Draw();
