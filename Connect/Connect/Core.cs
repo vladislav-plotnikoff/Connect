@@ -306,22 +306,14 @@ namespace Connect
         }
 
         /// <summary>
-        /// Создание новой игры
-        /// </summary>
-        public void NewGame()
-        {
-            mode = Mode.Expert;
-            CreateField();
-        }
-
-        /// <summary>
         /// Создание новой игры с другим уровнем сложности
         /// </summary>
         /// <param name="mode">Уровень сложности</param>
-        public void NewGame(Mode mode)
+        public void NewGame(Mode mode = Mode.Expert)
         {
             this.mode = mode;
-            CreateField();
+			history.Clear();
+			CreateField();
         }
 
         /// <summary>
@@ -335,6 +327,7 @@ namespace Connect
             }
             steps = rSteps;
             CheckConnected();
+			history.Clear();
         }
 
         /// <summary>
@@ -624,7 +617,8 @@ namespace Connect
 
 				history.RemoveAt(history.Count - 1);
 				steps++;
-			}
+				CheckConnected();
+      }
 				}
 				
 				}
