@@ -37,7 +37,7 @@ namespace Connect
             {
                 get
                 {
-										return (data & 0x1) + (data >> 1 & 0x1) + (data >> 2 & 0x1) + (data >> 3 & 0x1);
+                    return (data & 0x1) + (data >> 1 & 0x1) + (data >> 2 & 0x1) + (data >> 3 & 0x1);
                 }
             }
 
@@ -78,7 +78,7 @@ namespace Connect
             /// </summary>
             public void LockUnlock()
             {
-								data = data ^ (int)Mask.block;
+                data = data ^ (int)Mask.block;
             }
 
             /// <summary>
@@ -86,7 +86,7 @@ namespace Connect
             /// </summary>
             public void RotationLeft()
             {
-                data = data & 0xfff0 | (data >> 1 & 0x007 | data << 3 ) & 0x000f;
+                data = data & 0xfff0 | (data >> 1 & 0x007 | data << 3) & 0x000f;
             }
 
             /// <summary>
@@ -156,7 +156,7 @@ namespace Connect
         /// <summary>
         /// Типы сложности игры
         /// </summary>
-        public enum Mode { Easy, Normal, Hard, Expert}
+        public enum Mode { Easy, Normal, Hard, Expert }
 
         /// <summary>
         /// Тип хода
@@ -227,7 +227,7 @@ namespace Connect
             }
         }
 
-        public int width { get; private set;  }
+        public int width { get; private set; }
 
         /// <summary>
         /// Координата сервера
@@ -247,7 +247,7 @@ namespace Connect
         /// <summary>
         /// Количество ходов изначально выделенных для решения
         /// </summary>
-        private int rStep;
+        private int rSteps;
 
         /// <summary>
         /// Количество неподключенных ПК
@@ -261,7 +261,7 @@ namespace Connect
         /// <returns></returns>
         private int CorrectionCoordinates(int x)
         {
-						return x < 0 ? width - 1 + (x + 1) % width : x % width;
+            return x < 0 ? width - 1 + (x + 1) % width : x % width;
         }
 
         /// <summary>
@@ -320,19 +320,21 @@ namespace Connect
         /// <param name="mode">Уровень сложности</param>
         public void NewGame(Mode mode)
         {
-						this.mode = mode;
-						CreateField();
-				}
+            this.mode = mode;
+            CreateField();
+        }
 
         /// <summary>
         /// Повторить игру
         /// </summary>
         public void RepeatGame()
         {
-					foreach(Element el in elements) {
-						el.LoadRepeat();
-					}
-			steps = rStep;
+            foreach (Element el in elements)
+            {
+                el.LoadRepeat();
+            }
+            steps = rSteps;
+            CheckConnected();
         }
 
         /// <summary>
@@ -340,7 +342,35 @@ namespace Connect
         /// </summary>
         private void CheckConnected()
         {
+            for (int i = 0; i < width; i++)
+                for (int j = 0; j < width; j++)
+                {
+                    elements[i, j].mask = elements[i, j].mask & ~Mask.net;
+                }
+            CheckReqConnected(server);
+        }
 
+        /// <summary>
+        /// Рекурсивная заливка сети
+        /// </summary>
+        /// <param name="p">Точка где сеть должна быть обязательно</param>
+        private void CheckReqConnected(Point p)
+        {
+            this[p].mask = this[p].mask | Mask.net;
+            for (int i = 1; i < 16; i *= 2)
+            {
+                Point tempPoint = BesidePoint(p, (Mask)i);
+                if (this[p].mask.HasFlag((Mask)i)
+                    && this[BesidePoint(p, (Mask)i)].mask.HasFlag((Mask)(((i << 4) | i) >> 2 & 0xf))
+                    && !((tempPoint.x < 0
+                            || tempPoint.x >= width
+                            || tempPoint.y < 0
+                            || tempPoint.y >= width
+                        ) && mode != Mode.Expert)
+                    && !this[BesidePoint(p, (Mask)i)].mask.HasFlag(Mask.net)
+                    )
+                    CheckReqConnected(BesidePoint(p, (Mask)i));
+            }
         }
 
         /// <summary>
@@ -515,7 +545,7 @@ namespace Connect
                 {
                     Point tempPoint = BesidePoint(peak, (Mask)i);
                     if ((this[tempPoint].connects > 0
-                        && !this[peak].mask.HasFlag((Mask)i)) 
+                        && !this[peak].mask.HasFlag((Mask)i))
                         || (tempPoint.x < 0
                             || tempPoint.x >= width
                             || tempPoint.y < 0
@@ -574,7 +604,8 @@ namespace Connect
                     }
                     elements[i, j].SaveRepeat();
                 }
-            rStep = steps;
+            rSteps = steps;
+            CheckConnected();
         }
     }
 }
