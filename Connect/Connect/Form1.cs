@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 
@@ -28,6 +22,7 @@ namespace Connect
             InitializeComponent();
             core = new Core();
             core.NewGame();
+            stepsLabel.Text = core.steps.ToString();
             bgc = new BufferedGraphicsContext();
             dXFormWidth = Width - ClientSize.Width;
             dYFormHeight = Height - ClientSize.Height;
@@ -98,10 +93,12 @@ namespace Connect
             {
                 case Keys.F2:
                     core.NewGame();
+                    stepsLabel.Text = core.steps.ToString();
                     Draw();
                     break;
                 case Keys.F3:
                     core.RepeatGame();
+                    stepsLabel.Text = core.steps.ToString();
                     Draw();
                     break;
             }
@@ -141,19 +138,24 @@ namespace Connect
 
         private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
         {
+
+            this.Text = (e.X).ToString() + " " + ((int)cellSize).ToString();
             switch (e.Button)
             {
                 case MouseButtons.Left:
-                    core.NewTurn(e.X / (int)cellSize, e.Y / (int)cellSize, Core.TypeTurn.left);
+                    core.NewTurn((int)(e.X / cellSize), (int)(e.Y / cellSize), Core.TypeTurn.left);
+                    stepsLabel.Text = core.steps.ToString();
                     break;
                 case MouseButtons.Right:
-                    core.NewTurn(e.X / (int)cellSize, e.Y / (int)cellSize, Core.TypeTurn.right);
+                    core.NewTurn((int)(e.X / cellSize), (int)(e.Y / cellSize), Core.TypeTurn.right);
+                    stepsLabel.Text = core.steps.ToString();
                     break;
                 case MouseButtons.Middle:
-                    core.NewTurn(e.X / (int)cellSize, e.Y / (int)cellSize, Core.TypeTurn.block);
+                    core.NewTurn((int)(e.X / cellSize), (int)(e.Y / cellSize), Core.TypeTurn.block);
                     break;
             }
             Draw();
+
         }
 
         const int WMSZ_BOTTOM = 6;
