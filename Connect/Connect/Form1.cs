@@ -21,6 +21,7 @@ namespace Connect
         private int dXFormWidth, dYFormHeight, dSize;
         private float cellSize;
         private Brush netBrush;
+        private Brush blockBrush;
 
         public Form1()
         {
@@ -51,15 +52,14 @@ namespace Connect
             server = new Bitmap(200, 200);
             graphics = Graphics.FromImage(server);
             graphics.DrawImage(Properties.Resources.Server, 0, 0, 200, 200);
+            blockBrush = new Pen(Color.FromArgb(128, 0, 0, 0)).Brush;
 
             bg = bgc.Allocate(pictureBox1.CreateGraphics(), pictureBox1.ClientRectangle);
-            bg.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-            ClientSize = new Size(540, 570);
+            ClientSize = new Size(567, 597);
 
-            menuButton.Top = 540;
+            menuButton.Top = 567;
             menuButton.Left = 75;
             menuButton.Width = 390;
-            stepsLabel.CreateGraphics().TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
         }
 
         private void Draw()
@@ -72,6 +72,8 @@ namespace Connect
                 {
                     mask = core[i, j];
                     netBrush = mask.HasFlag(Core.Mask.net) ? Brushes.CornflowerBlue : Brushes.Gainsboro;
+                    if (mask.HasFlag(Core.Mask.block))
+                        bg.Graphics.FillRectangle(blockBrush, i * cellSize, j * cellSize, cellSize, cellSize);
                     if (mask.HasFlag(Core.Mask.left))
                         bg.Graphics.FillRectangle(netBrush, i * cellSize, j * cellSize + cellSize / 9F * 4F, cellSize / 9F * 5F, cellSize / 9F * 1F);
                     if (mask.HasFlag(Core.Mask.right))
@@ -92,16 +94,17 @@ namespace Connect
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-          switch(e.KeyCode) {
-						case Keys.F2:
-              core.NewGame();
-              Draw();
-							break;
-						case Keys.F3:
-							core.RepeatGame();
-							Draw();
-							break;
-					}
+            switch (e.KeyCode)
+            {
+                case Keys.F2:
+                    core.NewGame();
+                    Draw();
+                    break;
+                case Keys.F3:
+                    core.RepeatGame();
+                    Draw();
+                    break;
+            }
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -113,7 +116,8 @@ namespace Connect
         {
             pictureBox1.Width = ClientRectangle.Width;
             pictureBox1.Height = ClientRectangle.Width;
-            cellSize = (float)ClientRectangle.Width / core.width;
+            cellSize = ClientRectangle.Width / core.width;
+            Text = ClientRectangle.Width.ToString();
             bg.Dispose();
             bg = bgc.Allocate(pictureBox1.CreateGraphics(), pictureBox1.ClientRectangle);
             Draw();
@@ -126,9 +130,12 @@ namespace Connect
 
         private void Form1_ResizeEnd(object sender, EventArgs e)
         {
-            if (ClientSize.Width != ClientSize.Height + 30)
+            if (ClientSize.Width != ClientSize.Height + 30 || ClientSize.Width % 81 != 0)
             {
-                ClientSize = new Size(ClientSize.Width, ClientSize.Width + 30);
+                if (ClientSize.Width % 81 > 40)
+                    ClientSize = new Size(ClientSize.Width + 81 - ClientSize.Width % 81, ClientSize.Width + 30 + 81 - ClientSize.Width % 81);
+                else
+                    ClientSize = new Size(ClientSize.Width - ClientSize.Width % 81, ClientSize.Width + 30 - ClientSize.Width % 81);
             }
         }
 

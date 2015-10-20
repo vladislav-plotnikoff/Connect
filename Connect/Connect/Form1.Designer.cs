@@ -104,6 +104,7 @@
             this.Controls.Add(this.stepsLabel);
             this.Controls.Add(this.menuButton);
             this.Controls.Add(this.label1);
+            this.KeyPreview = true;
             this.Name = "Form1";
             this.Text = "Form1";
             this.ResizeEnd += new System.EventHandler(this.Form1_ResizeEnd);
