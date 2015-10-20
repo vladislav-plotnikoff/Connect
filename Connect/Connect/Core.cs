@@ -332,6 +332,7 @@ namespace Connect
 					foreach(Element el in elements) {
 						el.LoadRepeat();
 					}
+			steps = rStep;
         }
 
         /// <summary>

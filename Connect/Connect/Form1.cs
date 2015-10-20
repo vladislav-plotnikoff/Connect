@@ -27,6 +27,7 @@ namespace Connect
             InitializeComponent();
             core = new Core();
             core.NewGame();
+			stepsLabel.Text = core.steps.ToString();
             bgc = new BufferedGraphicsContext();
             dXFormWidth = Width - ClientSize.Width;
             dYFormHeight = Height - ClientSize.Height;
@@ -95,11 +96,13 @@ namespace Connect
           switch(e.KeyCode) {
 						case Keys.F2:
               core.NewGame();
+					stepsLabel.Text = core.steps.ToString();
               Draw();
 							break;
 						case Keys.F3:
 							core.RepeatGame();
-							Draw();
+					stepsLabel.Text = core.steps.ToString();
+					Draw();
 							break;
 					}
         }
@@ -134,19 +137,23 @@ namespace Connect
 
         private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
         {
-            switch (e.Button)
-            {
-                case MouseButtons.Left:
-                    core.NewTurn(e.X / (int)cellSize, e.Y / (int)cellSize, Core.TypeTurn.left);
-                    break;
-                case MouseButtons.Right:
-                    core.NewTurn(e.X / (int)cellSize, e.Y / (int)cellSize, Core.TypeTurn.right);
-                    break;
-                case MouseButtons.Middle:
-                    core.NewTurn(e.X / (int)cellSize, e.Y / (int)cellSize, Core.TypeTurn.block);
-                    break;
-            }
-            Draw();
+
+				this.Text = (e.X).ToString() + " " + ((int)cellSize).ToString();
+				switch(e.Button) {
+					case MouseButtons.Left:
+						core.NewTurn((int)(e.X / cellSize), (int)(e.Y / cellSize), Core.TypeTurn.left);
+						stepsLabel.Text = core.steps.ToString();
+						break;
+					case MouseButtons.Right:
+						core.NewTurn((int)(e.X / cellSize), (int)(e.Y / cellSize), Core.TypeTurn.right);
+						stepsLabel.Text = core.steps.ToString();
+						break;
+					case MouseButtons.Middle:
+						core.NewTurn((int)(e.X / cellSize), (int)(e.Y / cellSize), Core.TypeTurn.block);
+						break;
+				}
+				Draw();
+
         }
 
         const int WMSZ_BOTTOM = 6;
