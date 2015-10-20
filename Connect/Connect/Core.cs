@@ -576,5 +576,25 @@ namespace Connect
                 }
             rStep = steps;
         }
-    }
+    
+				public void Undo() {
+			if(history.Count > 0) {
+				switch(history[history.Count - 1].typeTurn) {
+					case TypeTurn.left:
+						elements[history[history.Count - 1].x, history[history.Count - 1].y].RotationRight();
+						break;
+					case TypeTurn.right:
+						elements[history[history.Count - 1].x, history[history.Count - 1].y].RotationLeft();
+						break;
+					case TypeTurn.block:
+						elements[history[history.Count - 1].x, history[history.Count - 1].y].LockUnlock();
+						break;
+				}
+
+				history.RemoveAt(history.Count - 1);
+				steps++;
+			}
+				}
+				
+				}
 }

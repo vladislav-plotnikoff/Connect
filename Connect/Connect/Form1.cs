@@ -87,7 +87,10 @@ namespace Connect
                 }
         }
 
-        private void Form1_KeyDown(object sender, KeyEventArgs e)
+		[DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
+		public static extern short GetKeyState(int nVirtKey);
+
+		private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
             switch (e.KeyCode)
             {
@@ -101,7 +104,14 @@ namespace Connect
                     stepsLabel.Text = core.steps.ToString();
                     Draw();
                     break;
-            }
+				case Keys.Z:
+					if(GetKeyState(0x11) < 0) {
+						core.Undo();
+					stepsLabel.Text = core.steps.ToString();
+					Draw();
+					}
+					break;
+			}
         }
 
         private void timer1_Tick(object sender, EventArgs e)
