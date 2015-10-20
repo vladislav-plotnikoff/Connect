@@ -115,7 +115,6 @@ namespace Connect
             pictureBox1.Width = ClientRectangle.Width;
             pictureBox1.Height = ClientRectangle.Width;
             cellSize = ClientRectangle.Width / core.width;
-            Text = ClientRectangle.Width.ToString();
             bg.Dispose();
             bg = bgc.Allocate(pictureBox1.CreateGraphics(), pictureBox1.ClientRectangle);
             Draw();
@@ -134,13 +133,13 @@ namespace Connect
                     ClientSize = new Size(ClientSize.Width + 81 - ClientSize.Width % 81, ClientSize.Width + 30 + 81 - ClientSize.Width % 81);
                 else
                     ClientSize = new Size(ClientSize.Width - ClientSize.Width % 81, ClientSize.Width + 30 - ClientSize.Width % 81);
+			cellSize = ClientRectangle.Width / core.width;
+				Draw();
             }
-        }
+		}
 
         private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
         {
-
-            this.Text = (e.X).ToString() + " " + ((int)cellSize).ToString();
             switch (e.Button)
             {
                 case MouseButtons.Left:
