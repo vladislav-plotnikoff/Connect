@@ -33,9 +33,10 @@ namespace Connect
             for (int i = 0; i < 540; i++)
                 for (int j = 0; j < 540; j++)
                     fon.SetPixel(i, j, Color.FromArgb(
-                        0 + (int)Math.Round(Math.Sqrt((i - 270) * (i - 270) + (270 - j) * (270 - j)) * (7) / 270.0),
+                        0,
+                        //0 + (int)Math.Round(Math.Sqrt((i - 270) * (i - 270) + (270 - j) * (270 - j)) * (7) / 270.0),
                         102 + (int)Math.Round(Math.Sqrt((i - 270) * (i - 270) + (270 - j) * (270 - j)) * (-46) / 270.0),
-                        255 + (int)Math.Round(Math.Sqrt((i - 270) * (i - 270) + (270 - j) * (270 - j)) * (-97) / 270.0)
+                        204 + (int)Math.Round(Math.Sqrt((i - 270) * (i - 270) + (270 - j) * (270 - j)) * (-97) / 270.0)
                         ));
 
             pc = new Bitmap(200, 200);
@@ -66,7 +67,7 @@ namespace Connect
                 for (int j = 0; j < core.width; j++)
                 {
                     mask = core[i, j];
-                    netBrush = mask.HasFlag(Core.Mask.net) ? Brushes.CornflowerBlue : Brushes.Gainsboro;
+                    netBrush = mask.HasFlag(Core.Mask.net) ? Brushes.LightSkyBlue : Brushes.LightGray;
                     if (mask.HasFlag(Core.Mask.block))
                         bg.Graphics.FillRectangle(blockBrush, i * cellSize, j * cellSize, cellSize, cellSize);
                     if (mask.HasFlag(Core.Mask.left))
