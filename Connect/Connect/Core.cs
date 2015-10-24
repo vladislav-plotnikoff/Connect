@@ -37,7 +37,7 @@ namespace Connect
             {
                 get
                 {
-										return (data & 0x1) + (data >> 1 & 0x1) + (data >> 2 & 0x1) + (data >> 3 & 0x1);
+                    return (data & 0x1) + (data >> 1 & 0x1) + (data >> 2 & 0x1) + (data >> 3 & 0x1);
                 }
             }
 
@@ -62,7 +62,7 @@ namespace Connect
             /// </summary>
             public void SaveRepeat()
             {
-                data = data & 0x000f << 12 | data & 0x0fff;
+                data = (data & 0x000f) << 12 | (data & 0x0fff);
             }
 
             /// <summary>
@@ -70,7 +70,7 @@ namespace Connect
             /// </summary>
             public void LoadRepeat()
             {
-                data = data & 0xf000 >> 12 | data & 0xff70;
+                data = (data & 0xf000) >> 12 | (data & 0xff70);
             }
 
             /// <summary>
@@ -78,7 +78,7 @@ namespace Connect
             /// </summary>
             public void LockUnlock()
             {
-								data = data ^ (int)Mask.block;
+                data = data ^ (int)Mask.block;
             }
 
             /// <summary>
@@ -86,7 +86,7 @@ namespace Connect
             /// </summary>
             public void RotationLeft()
             {
-                data = data & 0xfff0 | (data >> 1 & 0x007 | data & 0x0001 << 3);
+                data = data & 0xfff0 | (data >> 1 & 0x007 | data << 3) & 0x000f;
             }
 
             /// <summary>
@@ -156,7 +156,7 @@ namespace Connect
         /// <summary>
         /// Типы сложности игры
         /// </summary>
-        public enum Mode { Easy, Normal, Hard, Expert}
+        public enum Mode { Easy, Normal, Hard, Expert }
 
         /// <summary>
         /// Тип хода
@@ -227,7 +227,7 @@ namespace Connect
             }
         }
 
-        public int width { get; private set;  }
+        public int width { get; private set; }
 
         /// <summary>
         /// Координата сервера
@@ -247,7 +247,7 @@ namespace Connect
         /// <summary>
         /// Количество ходов изначально выделенных для решения
         /// </summary>
-        private int rStep;
+        private int rSteps;
 
         /// <summary>
         /// Количество неподключенных ПК
@@ -261,7 +261,7 @@ namespace Connect
         /// <returns></returns>
         private int CorrectionCoordinates(int x)
         {
-						return x < 0 ? width - 1 + (x + 1) % width : x % width;
+            return x < 0 ? width - 1 + (x + 1) % width : x % width;
         }
 
         /// <summary>
@@ -306,30 +306,28 @@ namespace Connect
         }
 
         /// <summary>
-        /// Создание новой игры
-        /// </summary>
-        public void NewGame()
-        {
-            mode = Mode.Expert;
-            CreateField();
-        }
-
-        /// <summary>
         /// Создание новой игры с другим уровнем сложности
         /// </summary>
         /// <param name="mode">Уровень сложности</param>
-        public void NewGame(Mode mode)
+        public void NewGame(Mode mode = Mode.Expert)
         {
-						this.mode = mode;
-						CreateField();
-				}
+            this.mode = mode;
+			history.Clear();
+			CreateField();
+        }
 
         /// <summary>
         /// Повторить игру
         /// </summary>
         public void RepeatGame()
         {
-
+            foreach (Element el in elements)
+            {
+                el.LoadRepeat();
+            }
+            steps = rSteps;
+            CheckConnected();
+			history.Clear();
         }
 
         /// <summary>
@@ -337,7 +335,35 @@ namespace Connect
         /// </summary>
         private void CheckConnected()
         {
+            for (int i = 0; i < width; i++)
+                for (int j = 0; j < width; j++)
+                {
+                    elements[i, j].mask = elements[i, j].mask & ~Mask.net;
+                }
+            CheckReqConnected(server);
+        }
 
+        /// <summary>
+        /// Рекурсивная заливка сети
+        /// </summary>
+        /// <param name="p">Точка где сеть должна быть обязательно</param>
+        private void CheckReqConnected(Point p)
+        {
+            this[p].mask = this[p].mask | Mask.net;
+            for (int i = 1; i < 16; i *= 2)
+            {
+                Point tempPoint = BesidePoint(p, (Mask)i);
+                if (this[p].mask.HasFlag((Mask)i)
+                    && this[BesidePoint(p, (Mask)i)].mask.HasFlag((Mask)(((i << 4) | i) >> 2 & 0xf))
+                    && !((tempPoint.x < 0
+                            || tempPoint.x >= width
+                            || tempPoint.y < 0
+                            || tempPoint.y >= width
+                        ) && mode != Mode.Expert)
+                    && !this[BesidePoint(p, (Mask)i)].mask.HasFlag(Mask.net)
+                    )
+                    CheckReqConnected(BesidePoint(p, (Mask)i));
+            }
         }
 
         /// <summary>
@@ -356,7 +382,7 @@ namespace Connect
                     elements[x, y].LockUnlock();
                     break;
                 case TypeTurn.left:
-                    if (elements[x, y].mask.HasFlag(Mask.block))
+                    if (!elements[x, y].mask.HasFlag(Mask.block))
                     {
                         elements[x, y].RotationLeft();
                         steps--;
@@ -364,7 +390,7 @@ namespace Connect
                     }
                     break;
                 case TypeTurn.right:
-                    if (elements[x, y].mask.HasFlag(Mask.block))
+                    if (!elements[x, y].mask.HasFlag(Mask.block))
                     {
                         elements[x, y].RotationRight();
                         steps--;
@@ -512,7 +538,7 @@ namespace Connect
                 {
                     Point tempPoint = BesidePoint(peak, (Mask)i);
                     if ((this[tempPoint].connects > 0
-                        && !this[peak].mask.HasFlag((Mask)i)) 
+                        && !this[peak].mask.HasFlag((Mask)i))
                         || (tempPoint.x < 0
                             || tempPoint.x >= width
                             || tempPoint.y < 0
@@ -547,7 +573,7 @@ namespace Connect
                         elements[i, j].mask = elements[i, j].mask | Mask.pc;
                     }
                     elements[i, j].SaveHint();
-                    /*if ((int)elements[i, j].mask == 0)
+                    if ((int)elements[i, j].mask == 0)
                         continue;
                     switch (rand.Next(4))
                     {
@@ -569,9 +595,31 @@ namespace Connect
                             steps++;
                             break;
                     }
-                    elements[i, j].SaveRepeat();*/
+                    elements[i, j].SaveRepeat();
                 }
-            rStep = steps;
+            rSteps = steps;
+            CheckConnected();
         }
-    }
+    
+				public void Undo() {
+			if(history.Count > 0) {
+				switch(history[history.Count - 1].typeTurn) {
+					case TypeTurn.left:
+						elements[history[history.Count - 1].x, history[history.Count - 1].y].RotationRight();
+						break;
+					case TypeTurn.right:
+						elements[history[history.Count - 1].x, history[history.Count - 1].y].RotationLeft();
+						break;
+					case TypeTurn.block:
+						elements[history[history.Count - 1].x, history[history.Count - 1].y].LockUnlock();
+						break;
+				}
+
+				history.RemoveAt(history.Count - 1);
+				steps++;
+				CheckConnected();
+      }
+				}
+				
+				}
 }

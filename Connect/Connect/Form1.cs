@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 
@@ -14,79 +8,127 @@ namespace Connect
     public partial class Form1 : Form
     {
         private Core core;
-        private Bitmap bitmap;
-        private Bitmap fon;
-        Graphics graphics;
-        BufferedGraphics bg;
-        BufferedGraphicsContext bgc;
-        int dXFormWidth, dYFormHeight, dSize;
+        private Bitmap bitmap, fon, pc, pcNet, server;
+        private Graphics graphics;
+        private BufferedGraphics bg;
+        private BufferedGraphicsContext bgc;
+        private int dXFormWidth, dYFormHeight, dSize;
+        private float cellSize;
+        private Brush netBrush;
+        private Brush blockBrush;
 
         public Form1()
         {
             InitializeComponent();
             core = new Core();
             core.NewGame();
+            stepsLabel.Text = core.steps.ToString();
             bgc = new BufferedGraphicsContext();
             dXFormWidth = Width - ClientSize.Width;
             dYFormHeight = Height - ClientSize.Height;
-            dSize = dYFormHeight - dXFormWidth;
-            MinimumSize = new Size(300 + dXFormWidth, 300 + dYFormHeight);
+            dSize = dYFormHeight - dXFormWidth + 30;
+            MinimumSize = new Size(300 + dXFormWidth, 330 + dYFormHeight);
+
+            fon = new Bitmap(540, 540);
+            for (int i = 0; i < 540; i++)
+                for (int j = 0; j < 540; j++)
+                    fon.SetPixel(i, j, Color.FromArgb(
+                        0,
+                        //0 + (int)Math.Round(Math.Sqrt((i - 270) * (i - 270) + (270 - j) * (270 - j)) * (7) / 270.0),
+                        102 + (int)Math.Round(Math.Sqrt((i - 270) * (i - 270) + (270 - j) * (270 - j)) * (-46) / 270.0),
+                        204 + (int)Math.Round(Math.Sqrt((i - 270) * (i - 270) + (270 - j) * (270 - j)) * (-97) / 270.0)
+                        ));
+
+            pc = new Bitmap(200, 200);
+            graphics = Graphics.FromImage(pc);
+            graphics.DrawImage(Properties.Resources.PC, 0, 0, 200, 200);
+            pcNet = new Bitmap(200, 200);
+            graphics = Graphics.FromImage(pcNet);
+            graphics.DrawImage(Properties.Resources.PCNet, 0, 0, 200, 200);
+            server = new Bitmap(200, 200);
+            graphics = Graphics.FromImage(server);
+            graphics.DrawImage(Properties.Resources.Server, 0, 0, 200, 200);
+            blockBrush = new Pen(Color.FromArgb(128, 0, 0, 0)).Brush;
+
+            bg = bgc.Allocate(pictureBox1.CreateGraphics(), pictureBox1.ClientRectangle);
+            ClientSize = new Size(567, 597);
+
+            menuButton.Top = 567;
+            menuButton.Left = 75;
+            menuButton.Width = 390;
         }
 
         private void Draw()
         {
             Core.Mask mask;
-            try
-            {
-                bg.Graphics.Clear(Color.Black);
-                for (int i = 0; i < core.width; i++)
-                    for (int j = 0; j < core.width; j++)
-                    {
-                        mask = core[i, j];
-                        if (mask.HasFlag(Core.Mask.left))
-                            bg.Graphics.FillRectangle(Brushes.White, i * 60, j * 60 + 25, 35, 10);
-                        if (mask.HasFlag(Core.Mask.right))
-                            bg.Graphics.FillRectangle(Brushes.White, i * 60 + 25, j * 60 + 25, 35, 10);
-                        if (mask.HasFlag(Core.Mask.up))
-                            bg.Graphics.FillRectangle(Brushes.White, i * 60 + 25, j * 60, 10, 35);
-                        if (mask.HasFlag(Core.Mask.down))
-                            bg.Graphics.FillRectangle(Brushes.White, i * 60 + 25, j * 60 + 25, 10, 35);
-                        if (mask.HasFlag(Core.Mask.pc))
-                            bg.Graphics.FillRectangle(Brushes.Red, i * 60 + 10, j * 60 + 10, 40, 40);
-                        if (mask.HasFlag(Core.Mask.server))
-                            bg.Graphics.FillRectangle(Brushes.Blue, i * 60 + 10, j * 60 + 10, 40, 40);
-                    }
-                bg.Render();
-            }
-            catch (NullReferenceException e)
-            {
-                bg = bgc.Allocate(pictureBox1.CreateGraphics(), pictureBox1.ClientRectangle);
-            }
+
+            bg.Graphics.DrawImage(fon, pictureBox1.ClientRectangle);
+            for (int i = 0; i < core.width; i++)
+                for (int j = 0; j < core.width; j++)
+                {
+                    mask = core[i, j];
+                    netBrush = mask.HasFlag(Core.Mask.net) ? Brushes.LightSkyBlue : Brushes.LightGray;
+                    if (mask.HasFlag(Core.Mask.block))
+                        bg.Graphics.FillRectangle(blockBrush, i * cellSize, j * cellSize, cellSize, cellSize);
+                    if (mask.HasFlag(Core.Mask.left))
+                        bg.Graphics.FillRectangle(netBrush, i * cellSize, j * cellSize + cellSize / 9F * 4F, cellSize / 9F * 5F, cellSize / 9F * 1F);
+                    if (mask.HasFlag(Core.Mask.right))
+                        bg.Graphics.FillRectangle(netBrush, i * cellSize + cellSize / 9F * 4F, j * cellSize + cellSize / 9F * 4F, cellSize / 9F * 5F, cellSize / 9F * 1F);
+                    if (mask.HasFlag(Core.Mask.up))
+                        bg.Graphics.FillRectangle(netBrush, i * cellSize + cellSize / 9F * 4F, j * cellSize, cellSize / 9F * 1F, cellSize / 9F * 5F);
+                    if (mask.HasFlag(Core.Mask.down))
+                        bg.Graphics.FillRectangle(netBrush, i * cellSize + cellSize / 9F * 4F, j * cellSize + cellSize / 9F * 4F, cellSize / 9F * 1F, cellSize / 9F * 5F);
+                    if (mask.HasFlag(Core.Mask.pc))
+                        if (mask.HasFlag(Core.Mask.net))
+                            bg.Graphics.DrawImage(pcNet, i * cellSize + cellSize / 9F * 1F, j * cellSize + cellSize / 9F * 1F, cellSize / 9F * 7F, cellSize / 9F * 7F);
+                        else
+                            bg.Graphics.DrawImage(pc, i * cellSize + cellSize / 9F * 1F, j * cellSize + cellSize / 9F * 1F, cellSize / 9F * 7F, cellSize / 9F * 7F);
+                    if (mask.HasFlag(Core.Mask.server))
+                        bg.Graphics.DrawImage(server, i * cellSize + cellSize / 9F * 1F, j * cellSize + cellSize / 9F * 1F, cellSize / 9F * 7F, cellSize / 9F * 7F);
+                }
         }
 
-        private void Form1_KeyDown(object sender, KeyEventArgs e)
+		[DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
+		public static extern short GetKeyState(int nVirtKey);
+
+		private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.F2)
+            switch (e.KeyCode)
             {
-                core.NewGame();
-                Draw();
-            }
+                case Keys.F2:
+                    core.NewGame();
+                    stepsLabel.Text = core.steps.ToString();
+                    Draw();
+                    break;
+                case Keys.F3:
+                    core.RepeatGame();
+                    stepsLabel.Text = core.steps.ToString();
+                    Draw();
+                    break;
+				case Keys.Z:
+					if(GetKeyState(0x11) < 0) {
+						core.Undo();
+					stepsLabel.Text = core.steps.ToString();
+					Draw();
+					}
+					break;
+			}
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            Draw();
+            bg.Render();
         }
 
         private void Form1_Resize(object sender, EventArgs e)
         {
             pictureBox1.Width = ClientRectangle.Width;
             pictureBox1.Height = ClientRectangle.Width;
+            cellSize = ClientRectangle.Width / core.width;
             bg.Dispose();
             bg = bgc.Allocate(pictureBox1.CreateGraphics(), pictureBox1.ClientRectangle);
-            Text = ClientSize.Width.ToString() + ' ' + ClientSize.Height.ToString();
+            Draw();
         }
-
 
         const int WM_SIZING = 0x214;
         const int WMSZ_LEFT = 1;
@@ -95,10 +137,35 @@ namespace Connect
 
         private void Form1_ResizeEnd(object sender, EventArgs e)
         {
-            if (ClientSize.Width != ClientSize.Height)
+            if (ClientSize.Width != ClientSize.Height + 30 || ClientSize.Width % 81 != 0)
             {
-                ClientSize = new Size(ClientSize.Height, ClientSize.Height);
+                if (ClientSize.Width % 81 > 40)
+                    ClientSize = new Size(ClientSize.Width + 81 - ClientSize.Width % 81, ClientSize.Width + 30 + 81 - ClientSize.Width % 81);
+                else
+                    ClientSize = new Size(ClientSize.Width - ClientSize.Width % 81, ClientSize.Width + 30 - ClientSize.Width % 81);
+			cellSize = ClientRectangle.Width / core.width;
+				Draw();
             }
+		}
+
+        private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
+        {
+            switch (e.Button)
+            {
+                case MouseButtons.Left:
+                    core.NewTurn((int)(e.X / cellSize), (int)(e.Y / cellSize), Core.TypeTurn.left);
+                    stepsLabel.Text = core.steps.ToString();
+                    break;
+                case MouseButtons.Right:
+                    core.NewTurn((int)(e.X / cellSize), (int)(e.Y / cellSize), Core.TypeTurn.right);
+                    stepsLabel.Text = core.steps.ToString();
+                    break;
+                case MouseButtons.Middle:
+                    core.NewTurn((int)(e.X / cellSize), (int)(e.Y / cellSize), Core.TypeTurn.block);
+                    break;
+            }
+            Draw();
+
         }
 
         const int WMSZ_BOTTOM = 6;
@@ -111,17 +178,14 @@ namespace Connect
                 int res = m.WParam.ToInt32();
                 if (res == WMSZ_LEFT + WMSZ_TOP)
                 {
-                    //Upper-left corner -> adjust width (could have been height)
                     rc.X = rc.Width - Height + dSize;
                 }
                 else if (res == WMSZ_TOP || res == WMSZ_BOTTOM || res == WMSZ_RIGHT + WMSZ_TOP)
                 {
-                    //Up or down resize -> adjust width (right)
                     rc.Width = rc.Left + Height - dSize;
                 }
                 else if (res == WMSZ_LEFT || res == WMSZ_RIGHT || res == WMSZ_RIGHT + WMSZ_BOTTOM || res == WMSZ_LEFT + WMSZ_BOTTOM)
                 {
-                    //Lower-right corner resize -> adjust height (could have been width)
                     rc.Height = rc.Top + Width + dSize;
                 }
                 Marshal.StructureToPtr(rc, m.LParam, true);
