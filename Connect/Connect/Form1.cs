@@ -34,7 +34,6 @@ namespace Connect
                 for (int j = 0; j < 540; j++)
                     fon.SetPixel(i, j, Color.FromArgb(
                         0,
-                        //0 + (int)Math.Round(Math.Sqrt((i - 270) * (i - 270) + (270 - j) * (270 - j)) * (7) / 270.0),
                         102 + (int)Math.Round(Math.Sqrt((i - 270) * (i - 270) + (270 - j) * (270 - j)) * (-46) / 270.0),
                         204 + (int)Math.Round(Math.Sqrt((i - 270) * (i - 270) + (270 - j) * (270 - j)) * (-97) / 270.0)
                         ));
@@ -88,11 +87,9 @@ namespace Connect
                 }
         }
 
-		[DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
-		public static extern short GetKeyState(int nVirtKey);
-
 		private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
+            Text = ((int)e.KeyCode).ToString();
             switch (e.KeyCode)
             {
                 case Keys.F2:
@@ -106,11 +103,12 @@ namespace Connect
                     Draw();
                     break;
 				case Keys.Z:
-					if(GetKeyState(0x11) < 0) {
-						core.Undo();
-					stepsLabel.Text = core.steps.ToString();
-					Draw();
-					}
+                    if (e.Control)
+                    {
+                        core.Undo();
+                        stepsLabel.Text = core.steps.ToString();
+                        Draw();
+                    }
 					break;
 			}
         }
