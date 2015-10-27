@@ -250,9 +250,57 @@ namespace Connect
         private int rSteps;
 
         /// <summary>
-        /// Количество неподключенных ПК
+        /// Время начала игры
         /// </summary>
-        private int countDisconnectedPC;
+        private DateTime beginTime;
+
+        /// <summary>
+        /// Дополнительные секунды, которые появляются при сохранение игры
+        /// </summary>
+        private long dTime;
+
+        /// <summary>
+        /// Время потраченное на игру
+        /// </summary>
+        private long timeGame;
+
+        /// <summary>
+        /// Время игры, выше 999 секунд в рекордах не фиксируется
+        /// </summary>
+        public long timer
+        {
+            get
+            {
+                if (gameOver)
+                {
+                    return timeGame;
+                }
+                else if (timeGame < 1000)
+                {
+                    timeGame = (DateTime.Now.Ticks - beginTime.Ticks) / 10000000 + dTime;
+                    timeGame = timeGame > 999 ? 999 : timeGame;
+                    return timeGame;
+                }
+                else
+                {
+                    return 999;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Окончина ли игра
+        /// </summary>
+        private bool gameOver;
+
+        /// <summary>
+        /// Шаблон метода для вызова события
+        /// </summary>
+        public delegate void EventMethodContainer();
+        /// <summary>
+        /// Событие победы
+        /// </summary>
+        public event EventMethodContainer onWin;
 
         /// <summary>
         /// Создание координаты из безмерного поля в реальное
@@ -309,11 +357,15 @@ namespace Connect
         /// Создание новой игры с другим уровнем сложности
         /// </summary>
         /// <param name="mode">Уровень сложности</param>
-        public void NewGame(Mode mode = Mode.Expert)
+        public void NewGame(Mode mode)
         {
             this.mode = mode;
-			history.Clear();
-			CreateField();
+            history.Clear();
+            CreateField();
+            beginTime = DateTime.Now;
+            dTime = 0;
+            timeGame = 0;
+            gameOver = false;
         }
 
         /// <summary>
@@ -321,13 +373,14 @@ namespace Connect
         /// </summary>
         public void RepeatGame()
         {
-            foreach (Element el in elements)
-            {
-                el.LoadRepeat();
-            }
+            for (int i = 0; i < width; i++)
+                for (int j = 0; j < width; j++)
+                {
+                    elements[i, j].LoadRepeat();
+                }
             steps = rSteps;
             CheckConnected();
-			history.Clear();
+            history.Clear();
         }
 
         /// <summary>
@@ -341,6 +394,17 @@ namespace Connect
                     elements[i, j].mask = elements[i, j].mask & ~Mask.net;
                 }
             CheckReqConnected(server);
+            for (int i = 0; i < width; i++)
+                for (int j = 0; j < width; j++)
+                {
+                    if (elements[i, j].mask.HasFlag(Mask.pc) & !elements[i, j].mask.HasFlag(Mask.net))
+                        return;
+                }
+            gameOver = true;
+            if (onWin != null)
+            {
+                onWin();
+            }
         }
 
         /// <summary>
@@ -373,8 +437,10 @@ namespace Connect
         /// <param name="y"></param>
         /// <param name="typeTurn"></param>
         /// <returns>Возращает true усли ход победный</returns>
-        public bool NewTurn(int x, int y, TypeTurn typeTurn)
+        public void NewTurn(int x, int y, TypeTurn typeTurn)
         {
+            if (gameOver)
+                return;
             history.Add(new Turn(x, y, typeTurn));
             switch (typeTurn)
             {
@@ -398,7 +464,6 @@ namespace Connect
                     }
                     break;
             }
-            return countDisconnectedPC == 0;
         }
 
         public void CallHint(int x, int y)
@@ -600,26 +665,29 @@ namespace Connect
             rSteps = steps;
             CheckConnected();
         }
-    
-				public void Undo() {
-			if(history.Count > 0) {
-				switch(history[history.Count - 1].typeTurn) {
-					case TypeTurn.left:
-						elements[history[history.Count - 1].x, history[history.Count - 1].y].RotationRight();
-						break;
-					case TypeTurn.right:
-						elements[history[history.Count - 1].x, history[history.Count - 1].y].RotationLeft();
-						break;
-					case TypeTurn.block:
-						elements[history[history.Count - 1].x, history[history.Count - 1].y].LockUnlock();
-						break;
-				}
 
-				history.RemoveAt(history.Count - 1);
-				steps++;
-				CheckConnected();
-      }
-				}
-				
-				}
+        public void Undo()
+        {
+            if (history.Count > 0)
+            {
+                switch (history[history.Count - 1].typeTurn)
+                {
+                    case TypeTurn.left:
+                        elements[history[history.Count - 1].x, history[history.Count - 1].y].RotationRight();
+                        steps++;
+                        break;
+                    case TypeTurn.right:
+                        elements[history[history.Count - 1].x, history[history.Count - 1].y].RotationLeft();
+                        steps++;
+                        break;
+                    case TypeTurn.block:
+                        elements[history[history.Count - 1].x, history[history.Count - 1].y].LockUnlock();
+                        break;
+                }
+
+                history.RemoveAt(history.Count - 1);
+                CheckConnected();
+            }
+        }
+    }
 }
